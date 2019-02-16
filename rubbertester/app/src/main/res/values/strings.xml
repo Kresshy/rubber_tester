@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Weather Station</string>
+    <string name="app_name">Rubber tester</string>
 
     <string name="dashboard_view">Dashboard View</string>
-    <string name="bluetooth_weather_station_connect_view">Bluetooth Stations</string>
+    <string name="bluetooth_station_connect_view">Bluetooth Stations</string>
     <string name="settings_view">Settings</string>
     <string name="quit_view">Quit</string>
 
@@ -20,7 +20,7 @@
     <string name="pref_interval_summ">The time interval to show on the graphs</string>
     <string name="pref_connection_type">Connection type</string>
     <string name="pref_connection_type_summ">Choose the connetion type (Wi-Fi or Bluetooth)</string>
-    <string name="pref_wifi_station_title">WI-FI Weather Station</string>
+    <string name="pref_wifi_station_title">WI-FI Station</string>
     <string name="pref_logging_title">Application logging enabled (restart needed)</string>
     <string name="pref_logging_sum">Write application logs to storage, find logs in Downloads folder</string>
     <string name="pref_logging_days_to_keep_title">Days to keep logs</string>
@@ -28,9 +28,9 @@
 
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
-    <string name="reconnect_message">Would you like to reconnect to your weather station?</string>
+    <string name="reconnect_message">Would you like to reconnect to your rubber tester?</string>
 
-    <string name="PREFERENCE_FILE_KEY">com.kresshy.weatherstation.PREFERENCE_FILE_KEY</string>
+    <string name="PREFERENCE_FILE_KEY">com.kresshy.rubbertester.PREFERENCE_FILE_KEY</string>
     <string name="PREFERENCE_CONNECTED">CONNECTED</string>
     <string name="PREFERENCE_DEVICE_ADDRESS">CONNECTED_DEVICE_ADDRESS</string>
     <string name="PREFERENCE_CONNECTION_TYPE">CONNECTION_TYPE</string>

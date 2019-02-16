@@ -35,7 +35,7 @@ public class FileLoggingTree extends Timber.DebugTree {
         try {
             File directory = new File(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                            + "/WeatherStationLogs"
+                            + "/RubberTesterLogs"
             );
 
             if (!directory.exists()) {
@@ -57,7 +57,7 @@ public class FileLoggingTree extends Timber.DebugTree {
 
             File file = new File(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                            + "/WeatherStationLogs"
+                            + "/RubberTesterLogs"
                             + File.separator
                             + fileName
             );

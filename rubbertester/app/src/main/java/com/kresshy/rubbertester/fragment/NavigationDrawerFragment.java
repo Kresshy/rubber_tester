@@ -102,7 +102,7 @@ public class NavigationDrawerFragment extends Fragment {
                 getActionBar().getThemedContext(),
                 new String[]{
                         getString(R.string.dashboard_view),
-                        getString(R.string.bluetooth_weather_station_connect_view),
+                        getString(R.string.bluetooth_station_connect_view),
                         getString(R.string.settings_view),
                         getString(R.string.quit_view),
 //                        "Wifi Stations"

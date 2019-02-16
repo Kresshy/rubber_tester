@@ -30,13 +30,11 @@ import com.kresshy.rubbertester.connection.ConnectionManager;
 import com.kresshy.rubbertester.force.ForceListener;
 import com.kresshy.rubbertester.force.ForceMeasurement;
 import com.kresshy.rubbertester.fragment.BluetoothDeviceListFragment;
-import com.kresshy.rubbertester.fragment.CalibrationFragment;
-import com.kresshy.rubbertester.fragment.GraphViewFragment;
+import com.kresshy.rubbertester.fragment.ForceFragment;
 import com.kresshy.rubbertester.fragment.NavigationDrawerFragment;
 import com.kresshy.rubbertester.fragment.SettingsFragment;
 import com.kresshy.rubbertester.fragment.WifiFragment;
 import com.kresshy.rubbertester.utils.ConnectionState;
-import com.kresshy.rubbertester.weather.WeatherListener;
 import com.kresshy.rubbertester.wifi.WifiDevice;
 
 import java.util.ArrayList;
@@ -46,11 +44,10 @@ import timber.log.Timber;
 
 
 public class RTActivity extends ActionBarActivity implements
+        ForceFragment.OnFragmentInteractionListener,
         NavigationDrawerFragment.NavigationDrawerCallbacks,
         BluetoothDeviceListFragment.OnFragmentInteractionListener,
-        GraphViewFragment.OnFragmentInteractionListener,
-        WifiFragment.OnFragmentInteractionListener,
-        CalibrationFragment.OnFragmentInteractionListener {
+        WifiFragment.OnFragmentInteractionListener {
 
     private static BluetoothDeviceItemAdapter bluetoothDevicesArrayAdapter;
     private static ArrayAdapter<String> wifiDevicesArrayAdapter;
@@ -61,17 +58,14 @@ public class RTActivity extends ActionBarActivity implements
     private static BluetoothAdapter bluetoothAdapter;
     private static BluetoothDevice bluetoothDevice;
 
-    private static double weatherDataCount = 0;
     private static String connectedDeviceName;
     private static SharedPreferences sharedPreferences;
     private CharSequence fragmentTitle;
     private static boolean requestedEnableBluetooth = false;
 
-    private WeatherListener weatherListener;
+    private ForceListener forceListener;
     private NavigationDrawerFragment navigationDrawerFragment;
     private ConnectionManager connectionManager;
-
-    private ForceListener forceListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -238,7 +232,7 @@ public class RTActivity extends ActionBarActivity implements
         switch (position) {
             case 0:
                 getFragmentManager().beginTransaction()
-                        .replace(R.id.container, new GraphViewFragment())
+                        .replace(R.id.container, new ForceFragment())
                         .commit();
                 break;
             case 1:
@@ -266,7 +260,7 @@ public class RTActivity extends ActionBarActivity implements
                 break;
             default:
                 getFragmentManager().beginTransaction()
-                        .replace(R.id.container, new GraphViewFragment())
+                        .replace(R.id.container, new ForceFragment())
                         .commit();
         }
 
@@ -279,7 +273,7 @@ public class RTActivity extends ActionBarActivity implements
                 fragmentTitle = getString(R.string.dashboard_view);
                 break;
             case 1:
-                fragmentTitle = getString(R.string.bluetooth_weather_station_connect_view);
+                fragmentTitle = getString(R.string.bluetooth_station_connect_view);
                 break;
             case 2:
                 fragmentTitle = getString(R.string.settings_view);
@@ -348,12 +342,6 @@ public class RTActivity extends ActionBarActivity implements
                     Timber.d("PDU of the message");
                     Timber.d(pdu);
 
-//                    double windSpeed = 0;
-//                    double temperature = 0;
-//
-//                    WeatherData weatherData;
-//                    WeatherMeasurement weatherMeasurement;
-
                     ForceMeasurement forceMeasurement;
 
                     try {
@@ -365,40 +353,6 @@ public class RTActivity extends ActionBarActivity implements
                         Timber.d("Cannot parse measurement: " + pdu);
                     }
 
-//                    try {
-//                        Gson gson = new Gson();
-//                        weatherMeasurement = gson.fromJson(pdu, WeatherMeasurement.class);
-//                        Timber.d(weatherMeasurement.toString());
-//                        weatherData = weatherMeasurement.getWeatherDataForNode(0);
-//                        Timber.d(weatherData.toString());
-//                        Timber.d("Transferring new weatherMeasurement / weatherData");
-//                        weatherListener.weatherDataReceived(weatherData);
-//                        weatherListener.measurementReceived(weatherMeasurement);
-//                        break;
-//                    } catch (JsonSyntaxException jse) {
-//                        try {
-//                            Timber.d("JsonSyntaxException, parsing as version 1 pdu");
-//                            String[] weather = pdu.split(" ");
-//                            windSpeed = Double.parseDouble(weather[0]);
-//                            temperature = Double.parseDouble(weather[1]);
-//                            weatherData = new WeatherData(windSpeed, temperature);
-//                            Timber.d(weatherData.toString());
-//                            weatherMeasurement = new WeatherMeasurement();
-//                            weatherMeasurement.setVersion(1);
-//                            weatherMeasurement.setNumberOfNodes(1);
-//                            weatherMeasurement.addWeatherDataToMeasurement(weatherData);
-//                            Timber.d(weatherMeasurement.toString());
-//                            Timber.d("Transferring new weatherMeasurement / weatherData");
-//                            weatherListener.weatherDataReceived(weatherData);
-//                            weatherListener.measurementReceived(weatherMeasurement);
-//                            break;
-//                        } catch (NumberFormatException nfe) {
-//                            Timber.d("Cannot parse weather data: " + pdu);
-//                        }
-//                    } catch (NumberFormatException nfe) {
-//                        Timber.d("Cannot parse weather data: " + pdu);
-//                    }
-
                     break;
 
                 case RTConstants.MESSAGE_STATE:
@@ -406,20 +360,18 @@ public class RTActivity extends ActionBarActivity implements
 
                     switch (state) {
                         case connecting:
-                            Toast.makeText(getApplicationContext(), "Connecting to weather station", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Connecting to station", Toast.LENGTH_SHORT).show();
                             break;
                         case disconnected:
-                            Toast.makeText(getApplicationContext(), "Disconnected from weather station", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), "Disconnected from station", Toast.LENGTH_LONG).show();
                             break;
                     }
 
                     break;
 
                 case RTConstants.MESSAGE_CONNECTED:
-                    Toast.makeText(getApplicationContext(), "Connected to weather station", Toast.LENGTH_SHORT).show();
-                    getFragmentManager().beginTransaction()
-                            .replace(R.id.container, new CalibrationFragment())
-                            .commit();
+                    Toast.makeText(getApplicationContext(), "Connected to station", Toast.LENGTH_SHORT).show();
+                    onNavigationDrawerItemSelected(0);
                     break;
             }
         }
@@ -459,18 +411,14 @@ public class RTActivity extends ActionBarActivity implements
         bluetoothAdapter.cancelDiscovery();
     }
 
-    @Override
-    public void registerWeatherDataReceiver(WeatherListener weatherListener) {
-        this.weatherListener = weatherListener;
-    }
-
-    @Override
-    public void startDashboardAfterCalibration() {
-        navigationDrawerFragment.selectItem(0);
-    }
 
     @Override
     public void onDeviceSelectedToConnect(WifiDevice device) {
         connectionManager.connectToDevice(device);
+    }
+
+    @Override
+    public void registerForceDataReceiver(ForceListener forceListener) {
+        this.forceListener = forceListener;
     }
 }

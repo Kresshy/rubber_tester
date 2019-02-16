@@ -43,7 +43,7 @@ public class BluetoothDeviceItemAdapter extends ArrayAdapter<BluetoothDevice> {
 
             if (bluetoothDevice.getName() != null) {
                 if (bluetoothDevice.getName().startsWith("WS")) {
-                    icon.setBackgroundDrawable(this.context.getResources().getDrawable(R.drawable.weather_station));
+                    icon.setBackgroundDrawable(this.context.getResources().getDrawable(R.drawable.rubber_tester_station));
                 }
 
                 if (name != null) {

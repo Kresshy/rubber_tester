@@ -377,7 +377,7 @@ public class BluetoothConnection implements Connection {
 
                         if (endIdx != -1) {
                             String fullMessage = curMsg.substring(0, endIdx + end.length());
-                            Timber.d( "New weather data available " + fullMessage);
+                            Timber.d( "New data available " + fullMessage);
                             curMsg.delete(0, endIdx + end.length());
                             handler.obtainMessage(RTConstants.MESSAGE_READ, bytes, -1, fullMessage).sendToTarget();
                         }

@@ -68,7 +68,7 @@ public class BluetoothStateReceiver extends BroadcastReceiver {
             Timber.d("Received bluetooth state change: STATE_ON");
 
             connection.start();
-            reconnectPreviousWeatherStation();
+            reconnectPreviousStation();
 
             pairedDevices = bluetoothAdapter.getBondedDevices();
 
@@ -81,7 +81,7 @@ public class BluetoothStateReceiver extends BroadcastReceiver {
         }
     }
 
-    public void reconnectPreviousWeatherStation() {
+    public void reconnectPreviousStation() {
         if (sharedPreferences.getBoolean(RTConstants.KEY_PREF_RECONNECT, false)) {
             Timber.d("We should restore the connection");
 
