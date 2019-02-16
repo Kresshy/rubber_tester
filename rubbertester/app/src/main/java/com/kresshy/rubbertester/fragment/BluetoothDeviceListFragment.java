@@ -12,7 +12,7 @@ import android.widget.AdapterView;
 import android.widget.TextView;
 
 import com.kresshy.rubbertester.R;
-import com.kresshy.rubbertester.activity.WSActivity;
+import com.kresshy.rubbertester.activity.RTActivity;
 
 import java.util.ArrayList;
 
@@ -52,7 +52,7 @@ public class BluetoothDeviceListFragment extends Fragment implements AbsListView
 
         // Set the adapter
         bluetoothDevicesListView = (AbsListView) view.findViewById(R.id.listview_bluetooth_devices);
-        bluetoothDevicesListView.setAdapter(((WSActivity) getActivity()).getPairedDevicesArrayAdapter());
+        bluetoothDevicesListView.setAdapter(((RTActivity) getActivity()).getPairedDevicesArrayAdapter());
         bluetoothDevicesListView.setOnItemClickListener(this);
 
         return view;
@@ -62,7 +62,7 @@ public class BluetoothDeviceListFragment extends Fragment implements AbsListView
     public void onStart() {
         super.onStart();
 
-        if (((WSActivity) getActivity()).getPairedDevices() != null) {
+        if (((RTActivity) getActivity()).getPairedDevices() != null) {
             bluetootDevicesTextView.setVisibility(View.VISIBLE);
         }
     }
@@ -80,7 +80,7 @@ public class BluetoothDeviceListFragment extends Fragment implements AbsListView
             // Cancel discovery because it's costly and we're about to connect
             mListener.stopBluetoothDiscovery();
 
-            ArrayList<BluetoothDevice> devices = ((WSActivity) getActivity()).getBluetoothDevices();
+            ArrayList<BluetoothDevice> devices = ((RTActivity) getActivity()).getBluetoothDevices();
             mListener.onDeviceSelectedToConnect(devices.get(position).getAddress());
         }
     }

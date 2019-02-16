@@ -8,7 +8,7 @@ import com.kresshy.rubbertester.logging.FileLoggingTree;
 
 import timber.log.Timber;
 
-public class WSApplication extends Application {
+public class RTApplication extends Application {
 
     @Override
     public void onCreate() {

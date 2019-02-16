@@ -10,11 +10,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.widget.ArrayAdapter;
 
 import com.kresshy.rubbertester.R;
-import com.kresshy.rubbertester.application.WSConstants;
+import com.kresshy.rubbertester.application.RTConstants;
 import com.kresshy.rubbertester.connection.Connection;
 
 import java.util.Set;
@@ -83,15 +82,15 @@ public class BluetoothStateReceiver extends BroadcastReceiver {
     }
 
     public void reconnectPreviousWeatherStation() {
-        if (sharedPreferences.getBoolean(WSConstants.KEY_PREF_RECONNECT, false)) {
+        if (sharedPreferences.getBoolean(RTConstants.KEY_PREF_RECONNECT, false)) {
             Timber.d("We should restore the connection");
 
             final String address = sharedPreferences.getString(
                     activity.getString(R.string.PREFERENCE_DEVICE_ADDRESS),
-                    WSConstants.BT_NULL_ADDRESS
+                    RTConstants.BT_NULL_ADDRESS
             );
 
-            if (!address.equals(WSConstants.BT_NULL_ADDRESS)) {
+            if (!address.equals(RTConstants.BT_NULL_ADDRESS)) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(activity);
                 builder.setMessage(R.string.reconnect_message);
 

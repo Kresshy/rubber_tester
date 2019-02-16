@@ -11,11 +11,10 @@ import android.os.Handler;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
-import com.kresshy.rubbertester.application.WSConstants;
+import com.kresshy.rubbertester.application.RTConstants;
 import com.kresshy.rubbertester.bluetooth.BluetoothConnection;
 import com.kresshy.rubbertester.utils.ConnectionState;
 import com.kresshy.rubbertester.wifi.WifiConnection;
@@ -98,7 +97,7 @@ public class ConnectionManager {
         if (!bluetoothAdapter.isEnabled()) {
             Timber.d( "Enabling bluetooth adapter");
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            activity.startActivityForResult(enableIntent, WSConstants.REQUEST_ENABLE_BT);
+            activity.startActivityForResult(enableIntent, RTConstants.REQUEST_ENABLE_BT);
         }
     }
 

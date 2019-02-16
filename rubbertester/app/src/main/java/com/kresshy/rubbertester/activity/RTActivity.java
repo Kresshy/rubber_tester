@@ -21,7 +21,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.kresshy.rubbertester.R;
-import com.kresshy.rubbertester.application.WSConstants;
+import com.kresshy.rubbertester.application.RTConstants;
 import com.kresshy.rubbertester.bluetooth.BluetoothConnection;
 import com.kresshy.rubbertester.bluetooth.BluetoothDeviceItemAdapter;
 import com.kresshy.rubbertester.bluetooth.BluetoothDiscoveryReceiver;
@@ -36,8 +36,6 @@ import com.kresshy.rubbertester.fragment.NavigationDrawerFragment;
 import com.kresshy.rubbertester.fragment.SettingsFragment;
 import com.kresshy.rubbertester.fragment.WifiFragment;
 import com.kresshy.rubbertester.utils.ConnectionState;
-import com.kresshy.rubbertester.weather.WeatherMeasurement;
-import com.kresshy.rubbertester.weather.WeatherData;
 import com.kresshy.rubbertester.weather.WeatherListener;
 import com.kresshy.rubbertester.wifi.WifiDevice;
 
@@ -47,7 +45,7 @@ import java.util.Set;
 import timber.log.Timber;
 
 
-public class WSActivity extends ActionBarActivity implements
+public class RTActivity extends ActionBarActivity implements
         NavigationDrawerFragment.NavigationDrawerCallbacks,
         BluetoothDeviceListFragment.OnFragmentInteractionListener,
         GraphViewFragment.OnFragmentInteractionListener,
@@ -336,13 +334,13 @@ public class WSActivity extends ActionBarActivity implements
 
             switch (msg.what) {
 
-                case WSConstants.MESSAGE_TOAST:
+                case RTConstants.MESSAGE_TOAST:
                     message = (String) msg.obj;
                     Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
 
                     break;
 
-                case WSConstants.MESSAGE_READ:
+                case RTConstants.MESSAGE_READ:
                     message = (String) msg.obj;
 
                     // [start_pdu_end]
@@ -403,7 +401,7 @@ public class WSActivity extends ActionBarActivity implements
 
                     break;
 
-                case WSConstants.MESSAGE_STATE:
+                case RTConstants.MESSAGE_STATE:
                     ConnectionState state = (ConnectionState) msg.obj;
 
                     switch (state) {
@@ -417,7 +415,7 @@ public class WSActivity extends ActionBarActivity implements
 
                     break;
 
-                case WSConstants.MESSAGE_CONNECTED:
+                case RTConstants.MESSAGE_CONNECTED:
                     Toast.makeText(getApplicationContext(), "Connected to weather station", Toast.LENGTH_SHORT).show();
                     getFragmentManager().beginTransaction()
                             .replace(R.id.container, new CalibrationFragment())

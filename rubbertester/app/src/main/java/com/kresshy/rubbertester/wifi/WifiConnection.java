@@ -8,7 +8,7 @@ import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.kresshy.rubbertester.application.WSConstants;
+import com.kresshy.rubbertester.application.RTConstants;
 import com.kresshy.rubbertester.connection.Connection;
 import com.kresshy.rubbertester.utils.ConnectionState;
 
@@ -80,7 +80,7 @@ public class WifiConnection implements Connection {
         }
 
         state = ConnectionState.disconnected;
-        handler.obtainMessage(WSConstants.MESSAGE_STATE, -1, -1, ConnectionState.disconnected).sendToTarget();
+        handler.obtainMessage(RTConstants.MESSAGE_STATE, -1, -1, ConnectionState.disconnected).sendToTarget();
     }
 
     public synchronized void connect(Parcelable device) {
@@ -108,7 +108,7 @@ public class WifiConnection implements Connection {
         connectThread.start();
         Log.d(TAG, "START ConnectThread " + device);
 
-        handler.obtainMessage(WSConstants.MESSAGE_STATE, -1, -1, ConnectionState.connecting).sendToTarget();
+        handler.obtainMessage(RTConstants.MESSAGE_STATE, -1, -1, ConnectionState.connecting).sendToTarget();
     }
 
     public synchronized void connected(Socket socket) {
@@ -127,7 +127,7 @@ public class WifiConnection implements Connection {
         Log.d(TAG, "START ConnectedThread");
 
         state = ConnectionState.connected;
-        handler.obtainMessage(WSConstants.MESSAGE_STATE, -1, -1, ConnectionState.connected).sendToTarget();
+        handler.obtainMessage(RTConstants.MESSAGE_STATE, -1, -1, ConnectionState.connected).sendToTarget();
     }
 
     public synchronized void stop() {
@@ -146,7 +146,7 @@ public class WifiConnection implements Connection {
         }
 
         state = ConnectionState.stopped;
-        handler.obtainMessage(WSConstants.MESSAGE_STATE, -1, -1, ConnectionState.stopped).sendToTarget();
+        handler.obtainMessage(RTConstants.MESSAGE_STATE, -1, -1, ConnectionState.stopped).sendToTarget();
     }
 
     public void write(byte[] out) {
@@ -218,7 +218,7 @@ public class WifiConnection implements Connection {
 
             // Get the input and output streams, using temp objects because
             // member streams are final
-            handler.obtainMessage(WSConstants.MESSAGE_CONNECTED, -1, -1, state).sendToTarget();
+            handler.obtainMessage(RTConstants.MESSAGE_CONNECTED, -1, -1, state).sendToTarget();
 
             try {
 
@@ -262,7 +262,7 @@ public class WifiConnection implements Connection {
                             String fullMessage = curMsg.substring(0, endIdx + end.length());
                             Timber.d( "New weather data available " + fullMessage);
                             curMsg.delete(0, endIdx + end.length());
-                            handler.obtainMessage(WSConstants.MESSAGE_READ, bytes, -1, fullMessage).sendToTarget();
+                            handler.obtainMessage(RTConstants.MESSAGE_READ, bytes, -1, fullMessage).sendToTarget();
                         } else {
                             Timber.d( "NOT Found endIdx");
                         }

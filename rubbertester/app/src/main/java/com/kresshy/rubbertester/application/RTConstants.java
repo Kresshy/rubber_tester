@@ -1,6 +1,6 @@
 package com.kresshy.rubbertester.application;
 
-public class WSConstants {
+public class RTConstants {
 
     // preferences
     public static final String KEY_PREF_INTERVAL = "pref_interval";

@@ -9,7 +9,7 @@ import android.os.Handler;
 import android.os.Parcelable;
 import android.util.Log;
 
-import com.kresshy.rubbertester.application.WSConstants;
+import com.kresshy.rubbertester.application.RTConstants;
 import com.kresshy.rubbertester.connection.Connection;
 import com.kresshy.rubbertester.utils.ConnectionState;
 
@@ -97,7 +97,7 @@ public class BluetoothConnection implements Connection {
         }
 
         state = ConnectionState.disconnected;
-        handler.obtainMessage(WSConstants.MESSAGE_STATE, -1, -1, ConnectionState.disconnected).sendToTarget();
+        handler.obtainMessage(RTConstants.MESSAGE_STATE, -1, -1, ConnectionState.disconnected).sendToTarget();
     }
 
     public synchronized void connect(Parcelable device) {
@@ -125,7 +125,7 @@ public class BluetoothConnection implements Connection {
         connectThread.start();
         Log.d(TAG, "START ConnectThread " + device);
 
-        handler.obtainMessage(WSConstants.MESSAGE_STATE, -1, -1, ConnectionState.connecting).sendToTarget();
+        handler.obtainMessage(RTConstants.MESSAGE_STATE, -1, -1, ConnectionState.connecting).sendToTarget();
     }
 
     public synchronized void connected(BluetoothSocket socket) {
@@ -152,7 +152,7 @@ public class BluetoothConnection implements Connection {
         Log.d(TAG, "START ConnectedThread");
 
         state = ConnectionState.connected;
-        handler.obtainMessage(WSConstants.MESSAGE_STATE, -1, -1, ConnectionState.connected).sendToTarget();
+        handler.obtainMessage(RTConstants.MESSAGE_STATE, -1, -1, ConnectionState.connected).sendToTarget();
     }
 
     public synchronized void stop() {
@@ -177,7 +177,7 @@ public class BluetoothConnection implements Connection {
         }
 
         state = ConnectionState.stopped;
-        handler.obtainMessage(WSConstants.MESSAGE_STATE, -1, -1, ConnectionState.stopped).sendToTarget();
+        handler.obtainMessage(RTConstants.MESSAGE_STATE, -1, -1, ConnectionState.stopped).sendToTarget();
     }
 
     public void write(byte[] out) {
@@ -301,7 +301,7 @@ public class BluetoothConnection implements Connection {
                     Log.e(TAG, "2ND CONNECT_FAIL " + connectException2.getMessage());
 
                     try {
-                        handler.obtainMessage(WSConstants.MESSAGE_TOAST, -1, -1, "Failed to reconnect...").sendToTarget();
+                        handler.obtainMessage(RTConstants.MESSAGE_TOAST, -1, -1, "Failed to reconnect...").sendToTarget();
                         socket.close();
                         return;
                     } catch (IOException e) {
@@ -342,7 +342,7 @@ public class BluetoothConnection implements Connection {
 
             // Get the input and output streams, using temp objects because
             // member streams are final
-            handler.obtainMessage(WSConstants.MESSAGE_CONNECTED, -1, -1, state).sendToTarget();
+            handler.obtainMessage(RTConstants.MESSAGE_CONNECTED, -1, -1, state).sendToTarget();
 
             try {
 
@@ -379,7 +379,7 @@ public class BluetoothConnection implements Connection {
                             String fullMessage = curMsg.substring(0, endIdx + end.length());
                             Timber.d( "New weather data available " + fullMessage);
                             curMsg.delete(0, endIdx + end.length());
-                            handler.obtainMessage(WSConstants.MESSAGE_READ, bytes, -1, fullMessage).sendToTarget();
+                            handler.obtainMessage(RTConstants.MESSAGE_READ, bytes, -1, fullMessage).sendToTarget();
                         }
                     }
 

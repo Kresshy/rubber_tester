@@ -13,7 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.kresshy.rubbertester.R;
-import com.kresshy.rubbertester.application.WSConstants;
+import com.kresshy.rubbertester.application.RTConstants;
 import com.kresshy.rubbertester.weather.WeatherMeasurement;
 import com.kresshy.rubbertester.weather.WeatherData;
 import com.kresshy.rubbertester.weather.WeatherListener;
@@ -104,11 +104,11 @@ public class CalibrationFragment extends Fragment implements WeatherListener, Vi
         );
 
         sharedPreferences.edit().putString(
-                WSConstants.KEY_WIND_DIFF, Double.toString(0.0)
+                RTConstants.KEY_WIND_DIFF, Double.toString(0.0)
         ).commit();
 
         sharedPreferences.edit().putString(
-                WSConstants.KEY_TEMP_DIFF, Double.toString(tempDiff)
+                RTConstants.KEY_TEMP_DIFF, Double.toString(tempDiff)
         ).commit();
 
         Timber.d("Calibration values - wind: " + windSpeedDiff + ", temp: " + tempDiff);

@@ -18,7 +18,7 @@ import com.jjoe64.graphview.GraphViewSeries;
 import com.jjoe64.graphview.GraphViewStyle;
 import com.jjoe64.graphview.LineGraphView;
 import com.kresshy.rubbertester.R;
-import com.kresshy.rubbertester.application.WSConstants;
+import com.kresshy.rubbertester.application.RTConstants;
 import com.kresshy.rubbertester.weather.WeatherMeasurement;
 import com.kresshy.rubbertester.weather.WeatherData;
 import com.kresshy.rubbertester.weather.WeatherListener;
@@ -85,15 +85,15 @@ public class GraphViewFragment extends Fragment implements WeatherListener {
         );
 
         numberOfSamples = Integer.parseInt(
-                sharedPreferences.getString(WSConstants.KEY_PREF_INTERVAL, "300")
+                sharedPreferences.getString(RTConstants.KEY_PREF_INTERVAL, "300")
         );
 
         correctionWind = Double.parseDouble(
-                sharedPreferences.getString(WSConstants.KEY_WIND_DIFF, "0.0")
+                sharedPreferences.getString(RTConstants.KEY_WIND_DIFF, "0.0")
         );
 
         correctionTemp = Double.parseDouble(
-                sharedPreferences.getString(WSConstants.KEY_TEMP_DIFF, "0.0")
+                sharedPreferences.getString(RTConstants.KEY_TEMP_DIFF, "0.0")
         );
 
         Timber.d("Correction values - wind: " + correctionWind + ", temp: " + correctionTemp);
