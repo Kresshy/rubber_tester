@@ -20,6 +20,7 @@ import com.jjoe64.graphview.GraphViewSeries;
 import com.jjoe64.graphview.GraphViewStyle;
 import com.jjoe64.graphview.LineGraphView;
 import com.kresshy.rubbertester.R;
+import com.kresshy.rubbertester.force.ForceCalculator;
 import com.kresshy.rubbertester.force.ForceData;
 import com.kresshy.rubbertester.force.ForceListener;
 import com.kresshy.rubbertester.force.ForceMeasurement;
@@ -44,6 +45,7 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     private Button startButton;
     private Button stopButton;
     private Button maxForceReachedButton;
+    private Button maximumWorkLoad;
 
     private boolean measurementActivated = false;
 
@@ -52,7 +54,9 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     private boolean maximumForce = false;
     private int lastCount = 0;
 
-    private List<ForceData> forceStorage;
+    private List<ForceMeasurement> forceMeasurementList;
+
+    private ForceCalculator forceCalculator;
 
     final private int yellowColor = Color.YELLOW;
     final private int redColor = Color.RED;
@@ -80,6 +84,8 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        forceCalculator = new ForceCalculator(forceMeasurementList);
     }
 
     @Override
@@ -101,10 +107,11 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
         startButton = (Button) view.findViewById(R.id.forceStartButton);
         stopButton = (Button) view.findViewById(R.id.forceStopButton);
         maxForceReachedButton = (Button) view.findViewById(R.id.forceMaxButton);
+        maximumWorkLoad = (Button) view.findViewById(R.id.maximumWorkLoad);
 
         bottomLayout = (LinearLayout) view.findViewById(R.id.forceGraphBackground);
 
-        forceStorage = new ArrayList<>();
+        forceMeasurementList = new ArrayList<>();
 
         createViewForForceGraph(forceGraphContainer);
 
@@ -130,7 +137,7 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
 
     private void handleIncomingMeasurement(ForceMeasurement forceMeasurement) {
         // store all measurements for serialization and other calculations
-        forceStorage.addAll(forceMeasurement.getMeasurements());
+        forceMeasurementList.add(forceMeasurement);
 
         if (!maximumForce) {
             for (ForceData data : forceMeasurement.getMeasurements()) {
@@ -209,6 +216,8 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
                 break;
             case R.id.forceStopButton:
                 measurementActivated = false;
+
+                maximumWorkLoad.setText(forceCalculator.calculateMaximumWorkLoad());
                 break;
             case R.id.forceMaxButton:
                 maximumForce = true;
