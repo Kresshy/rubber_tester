@@ -1,4 +1,4 @@
-Weather-Station
+Rubber Tester
 ===============
 
-Weather Station with Arduino and Android
+Rubber Tester with Arduino and Android
