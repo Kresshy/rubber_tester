@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -23,22 +24,40 @@ import com.kresshy.rubbertester.force.ForceData;
 import com.kresshy.rubbertester.force.ForceListener;
 import com.kresshy.rubbertester.force.ForceMeasurement;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import timber.log.Timber;
 
 
-public class ForceFragment extends Fragment implements ForceListener {
+public class ForceFragment extends Fragment implements ForceListener, View.OnClickListener {
     private static final String TAG = "ForceFragment";
 
-    private int measurementCount = 1;
-    private int numberOfSamples = 300;
-    private boolean maximumForce = false;
-    private int lastCount = 0;
+    private LinearLayout bottomLayout;
 
     private LineGraphView forceGraph;
     private GraphViewData[] forceData;
     private GraphViewSeries forceSeries;
 
     private TextView pullForceTextView;
+
+    private Button startButton;
+    private Button stopButton;
+    private Button maxForceReachedButton;
+
+    private boolean measurementActivated = false;
+
+    private int measurementCount = 1;
+    private int numberOfSamples = 300;
+    private boolean maximumForce = false;
+    private int lastCount = 0;
+
+    private List<ForceData> forceStorage;
+
+    final private int yellowColor = Color.YELLOW;
+    final private int redColor = Color.RED;
+
+    final private int flashingFrequency = 100;
 
     private OnFragmentInteractionListener mListener;
 
@@ -79,6 +98,14 @@ public class ForceFragment extends Fragment implements ForceListener {
         LinearLayout forceGraphContainer = (LinearLayout) view.findViewById(R.id.forceGraphContainer);
         pullForceTextView = (TextView) view.findViewById(R.id.pullForceText);
 
+        startButton = (Button) view.findViewById(R.id.forceStartButton);
+        stopButton = (Button) view.findViewById(R.id.forceStopButton);
+        maxForceReachedButton = (Button) view.findViewById(R.id.forceMaxButton);
+
+        bottomLayout = (LinearLayout) view.findViewById(R.id.forceGraphBackground);
+
+        forceStorage = new ArrayList<>();
+
         createViewForForceGraph(forceGraphContainer);
 
         return view;
@@ -96,17 +123,22 @@ public class ForceFragment extends Fragment implements ForceListener {
 
     @Override
     public void measurementReceived(ForceMeasurement forceMeasurement) {
-        handleIncomingMeasurement(forceMeasurement);
+        if (measurementActivated) {
+            handleIncomingMeasurement(forceMeasurement);
+        }
     }
 
     private void handleIncomingMeasurement(ForceMeasurement forceMeasurement) {
+        // store all measurements for serialization and other calculations
+        forceStorage.addAll(forceMeasurement.getMeasurements());
+
         if (!maximumForce) {
             for (ForceData data : forceMeasurement.getMeasurements()) {
                 forceSeries.appendData(new GraphViewData(
                         data.getCount(),
                         data.getForce()
                 ), true, numberOfSamples);
-                lastCount = data.getCount();
+                lastCount += data.getCount();
 
                 if (data.getForce() >= 4000) {
                     maximumForce = true;
@@ -139,7 +171,7 @@ public class ForceFragment extends Fragment implements ForceListener {
         forceGraph.setViewPort(0, numberOfSamples);
         forceGraph.setGraphViewStyle(getGraphViewStyle());
 
-        forceGraph.setHorizontalLabels(getHorizontalLabelsForGraph(numberOfSamples));
+        forceGraph.setHorizontalLabels(getHorizontalLabelsForGraph());
 
         GraphViewData[] forceData = new GraphViewData[1];
         forceData[0] = new GraphViewData(0, 0);
@@ -158,27 +190,8 @@ public class ForceFragment extends Fragment implements ForceListener {
         container.addView(forceGraph);
     }
 
-    private String[] getHorizontalLabelsForGraph(int numberOfSamples) {
-        final String[] horizontalLabels1min = new String[]{"1min", "45sec", "30sec", "15sec", "0min"};
-        final String[] horizontalLabels2min = new String[]{"2min", "1min", "0min"};
-        final String[] horizontalLabels5min = new String[]{"5min", "4min", "3min", "2min", "1min", "0min"};
-        final String[] horizontalLabels10min = new String[]{"10min", "8min", "6min", "4min", "2min", "0min"};
-        final String[] horizontalLabels20min = new String[]{"20min", "15min", "10min", "5min", "0min"};
-
-        switch (numberOfSamples) {
-            case 60:
-                return horizontalLabels1min;
-            case 120:
-                return horizontalLabels2min;
-            case 300:
-                return horizontalLabels5min;
-            case 600:
-                return horizontalLabels10min;
-            case 1200:
-                return horizontalLabels20min;
-            default:
-                return horizontalLabels5min;
-        }
+    private String[] getHorizontalLabelsForGraph() {
+        return new String[]{"40", "35", "30", "25", "20", "15", "10", "5", "0"};
     }
 
     private GraphViewStyle getGraphViewStyle() {
@@ -186,6 +199,21 @@ public class ForceFragment extends Fragment implements ForceListener {
         graphViewStyle.setVerticalLabelsAlign(Paint.Align.LEFT);
         graphViewStyle.setVerticalLabelsWidth(80);
         return graphViewStyle;
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch(view.getId()) {
+            case R.id.forceStartButton:
+                measurementActivated = true;
+                break;
+            case R.id.forceStopButton:
+                measurementActivated = false;
+                break;
+            case R.id.forceMaxButton:
+                maximumForce = true;
+                break;
+        }
     }
 
     public interface OnFragmentInteractionListener {
