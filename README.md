@@ -1,2 +1,4 @@
-# rubber_tester
-rubber testing machine 
+Rubber Tester
+===============
+
+Rubber Tester with Arduino and Android
