@@ -3,10 +3,12 @@ package com.kresshy.rubbertester.activity;
 import android.app.FragmentManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
@@ -34,9 +36,17 @@ import com.kresshy.rubbertester.fragment.ForceFragment;
 import com.kresshy.rubbertester.fragment.NavigationDrawerFragment;
 import com.kresshy.rubbertester.fragment.SettingsFragment;
 import com.kresshy.rubbertester.fragment.WifiFragment;
+import com.kresshy.rubbertester.serialization.LoadDialog;
+import com.kresshy.rubbertester.serialization.SaveDialog;
+import com.kresshy.rubbertester.serialization.SerializableMeasurementStorage;
 import com.kresshy.rubbertester.utils.ConnectionState;
 import com.kresshy.rubbertester.wifi.WifiDevice;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -66,6 +76,11 @@ public class RTActivity extends ActionBarActivity implements
     private ForceListener forceListener;
     private NavigationDrawerFragment navigationDrawerFragment;
     private ConnectionManager connectionManager;
+
+    private SerializableMeasurementStorage measurementStorage;
+
+    private final int REQUEST_SAVE = 45;
+    private final int REQUEST_LOAD = 46;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -300,24 +315,87 @@ public class RTActivity extends ActionBarActivity implements
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
+        switch (item.getItemId()) {
+            case R.id.action_save:
+                Intent intent = new Intent(getApplicationContext(),
+                        SaveDialog.class);
+                intent.putExtra("FileToSave", measurementStorage);
+                startActivityForResult(intent, REQUEST_SAVE);
 
-        if (id == R.id.action_settings) {
-            getFragmentManager().beginTransaction()
-                    .replace(R.id.container, new SettingsFragment())
-                    .commit();
+                return true;
+            case R.id.action_load:
+                Intent intent1 = new Intent(getApplicationContext(),
+                        LoadDialog.class);
+                startActivityForResult(intent1, REQUEST_LOAD);
 
-            return true;
-        } else if (id == R.id.action_quit) {
-            if (bluetoothAdapter.isEnabled()) {
-                Timber.d("Disabling bluetooth adapter");
-                bluetoothAdapter.disable();
-            }
+                return true;
+            case R.id.action_settings:
+                getFragmentManager().beginTransaction()
+                        .replace(R.id.container, new SettingsFragment())
+                        .commit();
 
-            finish();
+                return true;
+            case R.id.action_quit:
+                if (bluetoothAdapter.isEnabled()) {
+                    Timber.d("Disabling bluetooth adapter");
+                    bluetoothAdapter.disable();
+                }
+
+                finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
+    }
 
-        return super.onOptionsItemSelected(item);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_CANCELED)
+            return;
+
+        switch (requestCode) {
+            case REQUEST_SAVE:
+                Toast.makeText(
+                        getApplicationContext(),
+                        "File saved! Name: "
+                                + data.getStringExtra(getPackageName()) + ".rtm",
+                        Toast.LENGTH_SHORT).show();
+                break;
+            case REQUEST_LOAD:
+                String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                        + "/RubberTesterFiles";
+                File dir = new File(path);
+                dir.mkdir();
+
+                try {
+
+                    FileInputStream fis = new FileInputStream(path + "/"
+                            + data.getStringExtra(getPackageName()));
+                    ObjectInputStream ois = new ObjectInputStream(fis);
+                    SerializableMeasurementStorage loadedMeasurement = (SerializableMeasurementStorage) ois.readObject();
+                    measurementStorage = loadedMeasurement;
+
+                    loadMeasurementToGraph(measurementStorage);
+
+                    Toast.makeText(
+                            getApplicationContext(),
+                            "Program: " + data.getStringExtra(getPackageName())
+                                    + " opened.", Toast.LENGTH_SHORT).show();
+
+                    ois.close();
+                    fis.close();
+                } catch (FileNotFoundException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (ClassNotFoundException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                break;
+        }
     }
 
     private final Handler messageHandler = new Handler() {
@@ -348,6 +426,7 @@ public class RTActivity extends ActionBarActivity implements
                         Gson gson = new Gson();
                         forceMeasurement = gson.fromJson(pdu, ForceMeasurement.class);
                         Timber.d(forceMeasurement.toString());
+                        measurementStorage.addMeasurement(forceMeasurement);
                         forceListener.measurementReceived(forceMeasurement);
                     } catch (JsonSyntaxException jse) {
                         Timber.d("Cannot parse measurement: " + pdu);
@@ -376,6 +455,12 @@ public class RTActivity extends ActionBarActivity implements
             }
         }
     };
+
+    public void loadMeasurementToGraph(SerializableMeasurementStorage measurementStorage) {
+        for (ForceMeasurement measurement : measurementStorage.getMeasurementList()) {
+            forceListener.measurementReceived(measurement);
+        }
+    }
 
     public ArrayAdapter getPairedDevicesArrayAdapter() {
         return bluetoothDevicesArrayAdapter;

@@ -37,6 +37,10 @@
 
     <string name="calibration_skip">Skipping calibration, only one station</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="default_loc">/sdcard/Android/data/...</string>
+    <string name="save_loc">Save location:</string>
+    <string name="epl_savename">example:nowind_morning</string>
+    <string name="type_filename">Please type in the filename!</string>
+    <string name="choose_program">Please choose a program!</string>
+    <string name="store_loc">Store location:</string>
 </resources>

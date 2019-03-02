@@ -41,11 +41,11 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     private GraphViewSeries forceSeries;
 
     private TextView pullForceTextView;
+    private TextView maximumWorkTextView;
 
     private Button startButton;
     private Button stopButton;
     private Button maxForceReachedButton;
-    private Button maximumWorkLoad;
 
     private boolean measurementActivated = false;
 
@@ -60,7 +60,6 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
 
     final private int yellowColor = Color.YELLOW;
     final private int redColor = Color.RED;
-
     final private int flashingFrequency = 100;
 
     private OnFragmentInteractionListener mListener;
@@ -103,11 +102,11 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
 
         LinearLayout forceGraphContainer = (LinearLayout) view.findViewById(R.id.forceGraphContainer);
         pullForceTextView = (TextView) view.findViewById(R.id.pullForceText);
+        maximumWorkTextView = (TextView) view.findViewById(R.id.maximumWorkText);
 
         startButton = (Button) view.findViewById(R.id.forceStartButton);
         stopButton = (Button) view.findViewById(R.id.forceStopButton);
         maxForceReachedButton = (Button) view.findViewById(R.id.forceMaxButton);
-        maximumWorkLoad = (Button) view.findViewById(R.id.maximumWorkLoad);
 
         bottomLayout = (LinearLayout) view.findViewById(R.id.forceGraphBackground);
 
@@ -141,13 +140,15 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
 
         if (!maximumForce) {
             for (ForceData data : forceMeasurement.getMeasurements()) {
+                colorBackgroundOnForce(data.getForce());
+
                 forceSeries.appendData(new GraphViewData(
                         data.getCount(),
                         data.getForce()
                 ), true, numberOfSamples);
                 lastCount += data.getCount();
 
-                if (data.getForce() >= 4000) {
+                if (data.getForce() >= 40000) { // TODO move maximum measurable force to constant
                     maximumForce = true;
                 }
             }
@@ -201,6 +202,12 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
         return new String[]{"40", "35", "30", "25", "20", "15", "10", "5", "0"};
     }
 
+    // TODO color background reaching a certain force on `bottonLayout`. 90% yellow, 95% red,
+    // 98% flashing red. When reaching maximum force revert to default or pick a cool down color.
+    private void colorBackgroundOnForce(double force) {
+
+    }
+
     private GraphViewStyle getGraphViewStyle() {
         GraphViewStyle graphViewStyle = new GraphViewStyle(Color.BLACK, Color.BLACK, Color.GRAY);
         graphViewStyle.setVerticalLabelsAlign(Paint.Align.LEFT);
@@ -217,7 +224,7 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
             case R.id.forceStopButton:
                 measurementActivated = false;
 
-                maximumWorkLoad.setText(forceCalculator.calculateMaximumWorkLoad());
+                maximumWorkTextView.setText(forceCalculator.calculateMaximumWorkLoad());
                 break;
             case R.id.forceMaxButton:
                 maximumForce = true;
