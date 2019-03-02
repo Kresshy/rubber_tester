@@ -28,6 +28,8 @@
 
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="load">Load</string>
+    <string name="save">Save</string>
     <string name="reconnect_message">Would you like to reconnect to your rubber tester?</string>
 
     <string name="PREFERENCE_FILE_KEY">com.kresshy.rubbertester.PREFERENCE_FILE_KEY</string>
