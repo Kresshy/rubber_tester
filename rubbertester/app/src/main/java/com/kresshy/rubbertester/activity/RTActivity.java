@@ -134,6 +134,8 @@ public class RTActivity extends ActionBarActivity implements
             connectionManager.enableConnection();
             requestedEnableBluetooth = true;
         }
+
+        measurementStorage = new SerializableMeasurementStorage();
     }
 
     @Override
@@ -429,6 +431,7 @@ public class RTActivity extends ActionBarActivity implements
                         measurementStorage.addMeasurement(forceMeasurement);
                         forceListener.measurementReceived(forceMeasurement);
                     } catch (JsonSyntaxException jse) {
+                        Timber.d(jse.getMessage());
                         Timber.d("Cannot parse measurement: " + pdu);
                     }
 
@@ -457,9 +460,13 @@ public class RTActivity extends ActionBarActivity implements
     };
 
     public void loadMeasurementToGraph(SerializableMeasurementStorage measurementStorage) {
+        forceListener.enableMeasurementForLoad();
+
         for (ForceMeasurement measurement : measurementStorage.getMeasurementList()) {
             forceListener.measurementReceived(measurement);
         }
+
+        forceListener.disableMeasurementForLoad();
     }
 
     public ArrayAdapter getPairedDevicesArrayAdapter() {

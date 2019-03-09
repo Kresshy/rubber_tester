@@ -1,14 +1,15 @@
 package com.kresshy.rubbertester.force;
 
+import java.io.Serializable;
+
 import lombok.Data;
 
 
 // {"unit":"gram","force":0,"count":300}
 @Data
-public class ForceData {
-
+public class ForceData implements Serializable {
     private String unit;
-    private int force;
+    private double force;
     private int count;
 
     public ForceData() {
@@ -17,13 +18,13 @@ public class ForceData {
         this.count = 0;
     }
 
-    public ForceData(int force, int count) {
+    public ForceData(double force, int count) {
         this.unit = "cm";
         this.force = force;
         this.count = count;
     }
 
-    public ForceData(String unit, int force, int count) {
+    public ForceData(String unit, double force, int count) {
         this.unit = unit;
         this.force = force;
         this.count = count;

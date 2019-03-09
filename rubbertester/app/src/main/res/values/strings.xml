@@ -45,4 +45,7 @@
     <string name="type_filename">Please type in the filename!</string>
     <string name="choose_program">Please choose a program!</string>
     <string name="store_loc">Store location:</string>
+
+    <string name="title_activity_save_dialog">Save Dialog</string>
+    <string name="title_activity_load_dialog">Open Dialog</string>
 </resources>

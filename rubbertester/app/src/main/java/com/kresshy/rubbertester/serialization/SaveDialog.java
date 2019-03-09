@@ -42,7 +42,7 @@ public class SaveDialog extends Activity {
 
 
         String fileNameTimeStamp = new SimpleDateFormat(
-                "dd-MM-yyyy-HH"
+                "HH-mm_dd-MM-yyyy"
         ).format(new Date());
 
         fileName.setText(fileNameTimeStamp);

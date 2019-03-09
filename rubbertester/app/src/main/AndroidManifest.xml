@@ -32,6 +32,18 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".serialization.SaveDialog"
+            android:label="@string/title_activity_save_dialog"
+            android:theme="@android:style/Theme.Dialog" >
+        </activity>
+
+        <activity
+            android:name=".serialization.LoadDialog"
+            android:label="@string/title_activity_load_dialog"
+            android:theme="@android:style/Theme.Dialog" >
+        </activity>
+
     </application>
 
 </manifest>
