@@ -513,4 +513,8 @@ public class RTActivity extends ActionBarActivity implements
     public void registerForceDataReceiver(ForceListener forceListener) {
         this.forceListener = forceListener;
     }
+
+    public void initializeMeasurementStore() {
+        measurementStorage = new SerializableMeasurementStorage();
+    }
 }

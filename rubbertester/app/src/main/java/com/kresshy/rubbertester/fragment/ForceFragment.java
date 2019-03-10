@@ -25,6 +25,7 @@ import com.jjoe64.graphview.GraphViewSeries;
 import com.jjoe64.graphview.GraphViewStyle;
 import com.jjoe64.graphview.LineGraphView;
 import com.kresshy.rubbertester.R;
+import com.kresshy.rubbertester.activity.RTActivity;
 import com.kresshy.rubbertester.force.ForceCalculator;
 import com.kresshy.rubbertester.force.ForceData;
 import com.kresshy.rubbertester.force.ForceListener;
@@ -135,7 +136,6 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
         bottomLayout = (LinearLayout) view.findViewById(R.id.forceGraphBackground);
 
         createViewForForceGraph(forceGraphContainer);
-
         return view;
     }
 
@@ -366,6 +366,9 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
 
                 measurementCount = 0;
                 maximumForceReached = false;
+
+                ((RTActivity) getActivity()).initializeMeasurementStore();
+                Timber.d("Resetting application");
                 break;
         }
     }

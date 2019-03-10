@@ -3,6 +3,7 @@
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
     android:orientation="vertical"
+    android:background="@color/background_material_light"
     android:padding="10dp" >
 
     <TextView
@@ -21,6 +22,7 @@
             android:id="@+id/loadGroup"
             android:layout_width="fill_parent"
             android:layout_height="245dp"
+            android:padding="10dp"
             android:orientation="vertical" >
         </RadioGroup>
     </ScrollView>
@@ -37,8 +39,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingLeft="20dp"
-        android:text="@string/default_loc"
-        android:textColor="#AA0000"
+        android:text="Downloads/RubberTesterFiles"
+        android:textColor="@color/background_material_dark"
         android:textSize="20dp" />
 
     <RelativeLayout

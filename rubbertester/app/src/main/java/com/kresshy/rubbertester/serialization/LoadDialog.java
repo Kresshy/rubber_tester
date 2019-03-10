@@ -6,6 +6,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
@@ -57,6 +58,8 @@ public class LoadDialog extends Activity {
             list.get(i).setLayoutParams(
                     new LayoutParams(LayoutParams.FILL_PARENT,
                             LayoutParams.WRAP_CONTENT));
+            list.get(i).setPadding(10, 10, 10, 10);
+            list.get(i).setTextColor(Color.DKGRAY);
             rGroup.addView(list.get(i));
         }
 
