@@ -49,6 +49,7 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
 
     private TextView pullForceTextView;
     private TextView pullLengthTextView;
+    private TextView releaseLengthTextView;
     private TextView pullWork;
     private TextView releaseWork;
 
@@ -60,8 +61,9 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     private boolean measurementEnabled = false;
 
     private int measurementCount = 0;
+    private int releaseMeasurementCount = 0;
     private int numberOfSamples = 7000;
-    private int maximumForce = 40000; // grams
+    private int maximumForce = 35000; // grams
     private boolean maximumForceReached = false;
     private boolean enableSounds = true;
 
@@ -74,6 +76,8 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     final private int yellowColor = Color.YELLOW;
     final private int redColor = Color.RED;
     final private int lightGreyColor = Color.LTGRAY;
+
+    final private double leap = 10.825;
 
     private OnFragmentInteractionListener mListener;
 
@@ -118,6 +122,7 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
         forceGraphContainer = (LinearLayout) view.findViewById(R.id.forceGraphContainer);
         pullForceTextView = (TextView) view.findViewById(R.id.pullForceText);
         pullLengthTextView = (TextView) view.findViewById(R.id.pullLengthText);
+        releaseLengthTextView = (TextView) view.findViewById(R.id.releaseLengthText);
         pullWork = (TextView) view.findViewById(R.id.pullWork);
         releaseWork = (TextView) view.findViewById(R.id.releaseWork);
 
@@ -183,16 +188,23 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
 
         for (ForceData data : forceMeasurement.getMeasurements()) {
             measurementCount++;
+            if (maximumForceReached) {
+                releaseMeasurementCount++;
+            }
 
             colorBackgroundOnForce(data.getForce());
 
             forceSeries.appendData(new GraphViewData(
-                    measurementCount * 5.4125,
+                    measurementCount * this.leap,
                     data.getForce()
             ), true, numberOfSamples);
 
             pullForceTextView.setText(getStringValueInKg(data.getForce()) + " kg");
-            pullLengthTextView.setText(getStringValueInCm(measurementCount * 5.4125) + " cm");
+            if (!maximumForceReached) {
+                pullLengthTextView.setText(getStringValueInCm(measurementCount * this.leap) + " cm");
+            } else {
+                releaseLengthTextView.setText(getStringValueInCm(releaseMeasurementCount * this.leap) + " cm");
+            }
 
             colorBackgroundOnForce(data.getForce());
             alertSoundOnForce(data.getForce());
@@ -272,7 +284,7 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
 
     private void alertSoundOnForce(double force) {
         if (enableSounds) {
-            if (force >= maximumForce * 0.9 && force < maximumForce * 0.93) {
+            if (force >= maximumForce * 0.75 && force < maximumForce * 0.85) {
                 final ToneGenerator toneGenerator = new ToneGenerator(AudioManager.STREAM_MUSIC, 100);
                 toneGenerator.startTone(ToneGenerator.TONE_CDMA_LOW_L, 150);
                 Handler handler = new Handler(Looper.getMainLooper());
@@ -286,7 +298,7 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
                     }
 
                 }, 200);
-            } else if (force >= maximumForce * 0.98 && force < maximumForce * 0.99) {
+            } else if (force >= maximumForce * 0.90 && force < maximumForce * 0.99) {
                 final ToneGenerator toneGenerator = new ToneGenerator(AudioManager.STREAM_MUSIC, 100);
                 toneGenerator.startTone(ToneGenerator.TONE_CDMA_MED_L, 300);
                 Handler handler = new Handler(Looper.getMainLooper());
@@ -330,6 +342,7 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.forceStartButton:
+                ((RTActivity) getActivity()).initializeMeasurementStore();
                 measurementEnabled = true;
                 Timber.d("Starting measurement");
                 break;
@@ -365,6 +378,7 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
                 releaseForceCalculator = new ForceCalculator(releaseForceMeasurementList);
 
                 measurementCount = 0;
+                releaseMeasurementCount = 0;
                 maximumForceReached = false;
 
                 ((RTActivity) getActivity()).initializeMeasurementStore();

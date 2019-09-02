@@ -5,6 +5,7 @@ import java.util.List;
 public class ForceCalculator {
 
     private List<ForceMeasurement> forceMeasurementList;
+    private final double leap = 10.825;
 
     public ForceCalculator(List<ForceMeasurement> forceMeasurementList) {
         this.forceMeasurementList = forceMeasurementList;
@@ -17,7 +18,7 @@ public class ForceCalculator {
             final int leap = measurement.getLeap();
 
             for (ForceData data: measurement.getMeasurements()) {
-                maximumWorkLoad += (data.getForce() * 5.4125);
+                maximumWorkLoad += (data.getForce() * this.leap);
             }
         }
 

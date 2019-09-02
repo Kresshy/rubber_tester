@@ -7,7 +7,6 @@ android {
         applicationId "com.kresshy.rubbertester"
         minSdkVersion 14
         targetSdkVersion 20
-        versionCode 1
         versionName "0.0.5"
     }
 
@@ -27,7 +26,7 @@ dependencies {
     implementation 'org.projectlombok:lombok:1.16.16'
     implementation 'com.google.code.gson:gson:2.8.0'
     implementation 'com.google.dagger:dagger:2.11'
-    implementation 'com.google.dagger:dagger-android:2.11'
+    implementation 'com.google.dagger:dagger-android:2.15'
     implementation 'com.jakewharton.timber:timber:4.5.1'
     annotationProcessor 'org.projectlombok:lombok:1.16.16'
     annotationProcessor 'com.google.dagger:dagger-android-processor:2.11'
