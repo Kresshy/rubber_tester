@@ -5,10 +5,11 @@ import java.util.List;
 public class ForceCalculator {
 
     private List<ForceMeasurement> forceMeasurementList;
-    private final double leap = 10.825;
+    private double leap = 10.825;
 
-    public ForceCalculator(List<ForceMeasurement> forceMeasurementList) {
+    public ForceCalculator(List<ForceMeasurement> forceMeasurementList, double leap) {
         this.forceMeasurementList = forceMeasurementList;
+        this.leap = leap;
     }
 
     public double calculateMaximumWorkLoad() {

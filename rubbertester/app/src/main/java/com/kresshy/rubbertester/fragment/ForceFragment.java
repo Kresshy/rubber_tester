@@ -50,8 +50,9 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     private TextView pullForceTextView;
     private TextView pullLengthTextView;
     private TextView releaseLengthTextView;
-    private TextView pullWork;
-    private TextView releaseWork;
+    private TextView pullWorkTextView;
+    private TextView releaseWorkTextView;
+    private TextView possibleRotCountTextView;
 
     private Button startButton;
     private Button stopButton;
@@ -77,7 +78,8 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     final private int redColor = Color.RED;
     final private int lightGreyColor = Color.LTGRAY;
 
-    final private double leap = 10.825;
+    private double leap = 10.825;
+    private double coefficientValue = 1.6;
 
     private OnFragmentInteractionListener mListener;
 
@@ -100,10 +102,18 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(
+                getActivity().getApplicationContext()
+        );
+
+        coefficientValue = Double.parseDouble(sharedPreferences.getString("pref_coefficient_value", "1.6"));
+        leap = Double.parseDouble(sharedPreferences.getString("pref_step_value", "10.825"));
+
         pullForceMeasurementList = new ArrayList<>();
         releaseForceMeasurementList = new ArrayList<>();
-        pullForceCalculator = new ForceCalculator(pullForceMeasurementList);
-        releaseForceCalculator = new ForceCalculator(releaseForceMeasurementList);
+        pullForceCalculator = new ForceCalculator(pullForceMeasurementList, leap);
+        releaseForceCalculator = new ForceCalculator(releaseForceMeasurementList, leap);
     }
 
     @Override
@@ -112,10 +122,6 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
 
         View view = inflater.inflate(R.layout.fragment_force, container, false);
 
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(
-                getActivity().getApplicationContext()
-        );
-
         // keep screen on
         getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -123,8 +129,9 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
         pullForceTextView = (TextView) view.findViewById(R.id.pullForceText);
         pullLengthTextView = (TextView) view.findViewById(R.id.pullLengthText);
         releaseLengthTextView = (TextView) view.findViewById(R.id.releaseLengthText);
-        pullWork = (TextView) view.findViewById(R.id.pullWork);
-        releaseWork = (TextView) view.findViewById(R.id.releaseWork);
+        pullWorkTextView = (TextView) view.findViewById(R.id.pullWork);
+        releaseWorkTextView = (TextView) view.findViewById(R.id.releaseWork);
+        possibleRotCountTextView = (TextView) view.findViewById(R.id.possibleRotCount);
 
         startButton = (Button) view.findViewById(R.id.forceStartButton);
         startButton.setOnClickListener(this);
@@ -211,13 +218,14 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
 
             if (data.getForce() >= maximumForce) {
                 maximumForceReached = true;
-                pullWork.setText(
+                pullWorkTextView.setText(
                         getStringValueInKg(
                                 getValueInCm(
                                         pullForceCalculator.calculateMaximumWorkLoad()
                                 )
                         ));
                 Timber.d("Maximum pull force is reached and calculating pull work");
+
             }
         }
 
@@ -348,17 +356,19 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
                 break;
             case R.id.forceStopButton:
                 measurementEnabled = false;
-                releaseWork.setText(
+                releaseWorkTextView.setText(
                         getStringValueInKg(
                                 getValueInCm(
                                         releaseForceCalculator.calculateMaximumWorkLoad()
                                 )
                         ));
+
+                possibleRotCountTextView.setText(getStringValueInCm((measurementCount * leap) * coefficientValue));
                 Timber.d("Stopping measurement and calculating release work");
                 break;
             case R.id.forceMaxButton:
                 maximumForceReached = true;
-                pullWork.setText(
+                pullWorkTextView.setText(
                         getStringValueInKg(
                                 getValueInCm(
                                         pullForceCalculator.calculateMaximumWorkLoad()
@@ -374,12 +384,19 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
                 pullForceMeasurementList = new ArrayList<>();
                 releaseForceMeasurementList = new ArrayList<>();
 
-                pullForceCalculator = new ForceCalculator(pullForceMeasurementList);
-                releaseForceCalculator = new ForceCalculator(releaseForceMeasurementList);
+                pullForceCalculator = new ForceCalculator(pullForceMeasurementList, leap);
+                releaseForceCalculator = new ForceCalculator(releaseForceMeasurementList, leap);
 
                 measurementCount = 0;
                 releaseMeasurementCount = 0;
                 maximumForceReached = false;
+
+                pullForceTextView.setText("0");
+                pullLengthTextView.setText("0");
+                pullWorkTextView.setText("0");
+                releaseLengthTextView.setText("0");
+                releaseWorkTextView.setText("0");
+                possibleRotCountTextView.setText("0");
 
                 ((RTActivity) getActivity()).initializeMeasurementStore();
                 Timber.d("Resetting application");

@@ -58,10 +58,11 @@
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/sumWork"
+                    android:id="@+id/possibleRotCount"
                     android:layout_width="100dp"
                     android:layout_weight="25"
                     android:layout_height="match_parent"
+                    android:text="Coeff"
                     android:textAlignment="center"
                     android:textSize="30sp"
                     android:textStyle="bold" />
