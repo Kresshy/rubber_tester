@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.SET_ALARM"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
@@ -43,6 +44,9 @@
             android:label="@string/title_activity_load_dialog"
             android:theme="@android:style/Theme.Dialog" >
         </activity>
+
+        <receiver android:name=".broadcast.AlarmReceiver" >
+        </receiver>
 
     </application>
 

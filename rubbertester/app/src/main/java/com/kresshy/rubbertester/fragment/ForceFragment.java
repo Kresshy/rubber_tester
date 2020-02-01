@@ -2,7 +2,10 @@ package com.kresshy.rubbertester.fragment;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.Fragment;
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -26,6 +29,7 @@ import com.jjoe64.graphview.GraphViewStyle;
 import com.jjoe64.graphview.LineGraphView;
 import com.kresshy.rubbertester.R;
 import com.kresshy.rubbertester.activity.RTActivity;
+import com.kresshy.rubbertester.broadcast.AlarmReceiver;
 import com.kresshy.rubbertester.force.ForceCalculator;
 import com.kresshy.rubbertester.force.ForceData;
 import com.kresshy.rubbertester.force.ForceListener;
@@ -35,6 +39,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import timber.log.Timber;
+
+import static android.content.Context.ALARM_SERVICE;
 
 
 public class ForceFragment extends Fragment implements ForceListener, View.OnClickListener {
@@ -67,6 +73,7 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     private int maximumForce = 35000; // grams
     private boolean maximumForceReached = false;
     private boolean enableSounds = true;
+    private boolean aboveMaximumForce = false;
 
     private List<ForceMeasurement> pullForceMeasurementList;
     private List<ForceMeasurement> releaseForceMeasurementList;
@@ -186,6 +193,7 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
 
     private void handleIncomingMeasurement(ForceMeasurement forceMeasurement) {
         Timber.d("Handling Incoming measurement");
+
         // store all measurements for serialization and other calculations
         if (!maximumForceReached) {
             pullForceMeasurementList.add(forceMeasurement);
@@ -224,8 +232,18 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
                                         pullForceCalculator.calculateMaximumWorkLoad()
                                 )
                         ));
-                Timber.d("Maximum pull force is reached and calculating pull work");
 
+                if (enableSounds) {
+                    Intent intent = new Intent(getActivity(), AlarmReceiver.class);
+                    PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                            getActivity().getApplicationContext(), 0, intent, 0);
+
+                    AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(ALARM_SERVICE);
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()
+                            + (2 * 1000 * 60), pendingIntent);
+                }
+
+                Timber.d("Maximum pull force is reached and calculating pull work");
             }
         }
 
@@ -363,7 +381,7 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
                                 )
                         ));
 
-                possibleRotCountTextView.setText(getStringValueInCm((measurementCount * leap) * coefficientValue));
+                possibleRotCountTextView.setText(getStringValueInCm(((measurementCount - releaseMeasurementCount) * leap) * coefficientValue));
                 Timber.d("Stopping measurement and calculating release work");
                 break;
             case R.id.forceMaxButton:
