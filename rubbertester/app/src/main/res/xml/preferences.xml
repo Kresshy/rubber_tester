@@ -47,7 +47,12 @@
             android:defaultValue="10.825"
             android:title="Step distance"
             android:key="pref_step_value"
-            android:summary="The distance which the rubber tester pulls for a rotation. It's milli metre." />
+            android:summary="The distance pull for a rotation. (millimetres)." />
+        <EditTextPreference
+            android:defaultValue="4"
+            android:title="Number of measurements"
+            android:key="pref_meas_value"
+            android:summary="The number of measurements in one rotation." />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="Logging Settings">

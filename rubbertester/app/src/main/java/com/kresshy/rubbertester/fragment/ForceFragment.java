@@ -74,6 +74,9 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     private boolean maximumForceReached = false;
     private boolean enableSounds = true;
     private boolean aboveMaximumForce = false;
+    private boolean zeroValueHandlingMode = false;
+    private boolean disableUIChangesForUnitTesting = false;
+    private ForceMeasurement zeroMeasurement;
 
     private List<ForceMeasurement> pullForceMeasurementList;
     private List<ForceMeasurement> releaseForceMeasurementList;
@@ -92,6 +95,16 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
 
     public ForceFragment() {
         // Required empty public constructor
+    }
+
+    public ForceFragment(List<ForceMeasurement> pullForceMeasurementList, List<ForceMeasurement> releaseForceMeasurementList) {
+        coefficientValue = 1.6;
+        leap = 10.825;
+
+        this.pullForceMeasurementList = pullForceMeasurementList;
+        this.releaseForceMeasurementList = releaseForceMeasurementList;
+        pullForceCalculator = new ForceCalculator(pullForceMeasurementList, leap);
+        releaseForceCalculator = new ForceCalculator(releaseForceMeasurementList, leap);
     }
 
     @Override
@@ -191,10 +204,108 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
         stopButton.performClick();
     }
 
+    public void disableSounds() {
+        enableSounds = false;
+    }
+
+    // returns false if there weren't any zero value.
+    private boolean handleIfValueIsNull(ForceMeasurement forceMeasurement) {
+        if (zeroValueHandlingMode) {
+            // This means some of the previous measurement was zero. We are going to calculate an
+            // average of the previous measurements.
+            List<ForceData> previousMeasurementData;
+            if (!maximumForceReached) {
+                previousMeasurementData = pullForceMeasurementList
+                        .get(pullForceMeasurementList.size() - 1).getMeasurements();
+            } else {
+                if (releaseMeasurementCount > 0) {
+                    previousMeasurementData = releaseForceMeasurementList
+                            .get(releaseForceMeasurementList.size() - 1).getMeasurements();
+                } else {
+                    previousMeasurementData = pullForceMeasurementList
+                            .get(pullForceMeasurementList.size() - 1).getMeasurements();
+                }
+            }
+            List<ForceData> zeroMeasurementData = zeroMeasurement.getMeasurements();
+            List<ForceData> currentMeasurementData = forceMeasurement.getMeasurements();
+
+            List<ForceData> allMeasurementData = new ArrayList<>();
+            allMeasurementData.addAll(previousMeasurementData);
+            allMeasurementData.addAll(zeroMeasurementData);
+            allMeasurementData.addAll(currentMeasurementData);
+
+            int i = 0;
+
+            while (i < allMeasurementData.size()) {
+                if (allMeasurementData.get(i).getForce() == 0.0) {
+                    break;
+                }
+                i++;
+            }
+
+            double sumValue = 0.0;
+
+            sumValue += allMeasurementData.get(i - 1).getForce();
+            sumValue += allMeasurementData.get(i).getForce();
+            sumValue += allMeasurementData.get(i + 1).getForce();
+
+            double averageValue = sumValue / 3;
+
+            // The position where we have to insert the average value;
+            i -= previousMeasurementData.size();
+
+            List<ForceData> correctedData = new ArrayList<>();
+
+            List<ForceData> incorrectData = new ArrayList<>();
+            incorrectData.addAll(zeroMeasurementData);
+            incorrectData.addAll(currentMeasurementData);
+
+            for (int j = 0; j < zeroMeasurementData.size() + currentMeasurementData.size(); j++) {
+                if (j == i) {
+                    ForceData data = incorrectData.get(j);
+                    data.setForce(averageValue);
+                    correctedData.add(data);
+                } else {
+                    correctedData.add(incorrectData.get(j));
+                }
+            }
+
+            forceMeasurement.setMeasurements(correctedData);
+            // We have corrected the Zero value
+            zeroValueHandlingMode = false;
+        } else {
+            // Looking for a zero value in the measurements.
+            for (ForceData data : forceMeasurement.getMeasurements()) {
+                // We allow the first measurement to be zero, otherwise it's a wrong measurement.
+                if (data.getForce() == 0.0 && measurementCount > 0) {
+                    zeroValueHandlingMode = true;
+                    zeroMeasurement = forceMeasurement;
+                }
+            }
+        }
+
+        return zeroValueHandlingMode;
+    }
+
     private void handleIncomingMeasurement(ForceMeasurement forceMeasurement) {
         Timber.d("Handling Incoming measurement");
 
-        // store all measurements for serialization and other calculations
+        // Check if we are still above the maximum allowed pulling force.
+        for (ForceData data : forceMeasurement.getMeasurements()) {
+            if (!(data.getForce() >= maximumForce)) {
+                aboveMaximumForce = false;
+            }
+        }
+        // If we are above the maximum force we do nothing... otherwise continue with calculations.
+        if (aboveMaximumForce) {
+            return;
+        }
+
+        if (handleIfValueIsNull(forceMeasurement)) {
+            return;
+        }
+
+        // Store all valid (nonzero filtered) measurements for serialization and other calculations.
         if (!maximumForceReached) {
             pullForceMeasurementList.add(forceMeasurement);
         } else {
@@ -209,16 +320,19 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
 
             colorBackgroundOnForce(data.getForce());
 
-            forceSeries.appendData(new GraphViewData(
-                    measurementCount * this.leap,
-                    data.getForce()
-            ), true, numberOfSamples);
+            if (!disableUIChangesForUnitTesting) {
+                forceSeries.appendData(new GraphViewData(
+                        measurementCount * this.leap,
+                        data.getForce()
+                ), true, numberOfSamples);
 
-            pullForceTextView.setText(getStringValueInKg(data.getForce()) + " kg");
-            if (!maximumForceReached) {
-                pullLengthTextView.setText(getStringValueInCm(measurementCount * this.leap) + " cm");
-            } else {
-                releaseLengthTextView.setText(getStringValueInCm(releaseMeasurementCount * this.leap) + " cm");
+
+                pullForceTextView.setText(getStringValueInKg(data.getForce()) + " kg");
+                if (!maximumForceReached) {
+                    pullLengthTextView.setText(getStringValueInCm(measurementCount * this.leap) + " cm");
+                } else {
+                    releaseLengthTextView.setText(getStringValueInCm(releaseMeasurementCount * this.leap) + " cm");
+                }
             }
 
             colorBackgroundOnForce(data.getForce());
@@ -226,13 +340,15 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
 
             if (data.getForce() >= maximumForce) {
                 maximumForceReached = true;
-                pullWorkTextView.setText(
-                        getStringValueInKg(
-                                getValueInCm(
-                                        pullForceCalculator.calculateMaximumWorkLoad()
-                                )
-                        ));
-
+                aboveMaximumForce = true;
+                if (!disableUIChangesForUnitTesting) {
+                    pullWorkTextView.setText(
+                            getStringValueInKg(
+                                    getValueInCm(
+                                            pullForceCalculator.calculateMaximumWorkLoad()
+                                    )
+                            ));
+                }
                 if (enableSounds) {
                     Intent intent = new Intent(getActivity(), AlarmReceiver.class);
                     PendingIntent pendingIntent = PendingIntent.getBroadcast(
@@ -299,6 +415,10 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     // TODO color background reaching a certain force on `bottonLayout`. 90% yellow, 95% red,
     // 98% flashing red. When reaching maximum force revert to default or pick a cool down color.
     private void colorBackgroundOnForce(double force) {
+        if (disableUIChangesForUnitTesting) {
+            return;
+        }
+
         if (force < maximumForce * 0.9) {
             bottomLayout.setBackgroundColor(lightGreyColor);
         } else if (force >= maximumForce * 0.9 && force < maximumForce * 0.98) {
@@ -420,6 +540,14 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
                 Timber.d("Resetting application");
                 break;
         }
+    }
+
+    public void disableUIChangesForTesting() {
+        this.disableUIChangesForUnitTesting = true;
+    }
+
+    public void enableMeasurementForTesting() {
+        this.measurementEnabled = true;
     }
 
     public interface OnFragmentInteractionListener {
