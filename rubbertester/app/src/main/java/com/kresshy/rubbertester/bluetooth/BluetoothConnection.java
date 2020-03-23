@@ -21,7 +21,6 @@ import java.util.UUID;
 
 import timber.log.Timber;
 
-
 public class BluetoothConnection implements Connection {
 
     // Debugging
@@ -229,7 +228,7 @@ public class BluetoothConnection implements Connection {
                 // If a connection was accepted
                 if (socket != null) {
                     // Do work to manage the connection (in a separate thread)
-                    Timber.d( "Connected");
+                    Timber.d("Connected");
                     connected(socket);
                     try {
                         mmServerSocket.close();
@@ -271,9 +270,9 @@ public class BluetoothConnection implements Connection {
                 // MY_UUID is the app's UUID string, also used by the server
                 // code
                 tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
-                Timber.d( "RFCOMM_OK");
+                Timber.d("RFCOMM_OK");
             } catch (IOException e) {
-                Timber.d( "Cannot create RfcommSocket " + e.getMessage());
+                Timber.d("Cannot create RfcommSocket " + e.getMessage());
             }
             socket = tmp;
         }
@@ -286,7 +285,7 @@ public class BluetoothConnection implements Connection {
                 // Connect the device through the socket. This will block
                 // until it succeeds or throws an exception
                 socket.connect();
-                Timber.d( "CONNECT_OK");
+                Timber.d("CONNECT_OK");
 
             } catch (IOException connectException) {
                 // Unable to connect; close the socket and get out
@@ -348,7 +347,7 @@ public class BluetoothConnection implements Connection {
 
                 tmpInputStream = socket.getInputStream();
                 tmpOutputStream = socket.getOutputStream();
-                Timber.d( "STREAMS_OK");
+                Timber.d("STREAMS_OK");
             } catch (IOException e) {
                 Log.e(TAG, "STREAMS_FAIL " + e.getMessage());
             }
@@ -377,7 +376,7 @@ public class BluetoothConnection implements Connection {
 
                         if (endIdx != -1) {
                             String fullMessage = curMsg.substring(0, endIdx + end.length());
-                            Timber.d( "New data available " + fullMessage);
+                            Timber.d("New data available " + fullMessage);
                             curMsg.delete(0, endIdx + end.length());
                             handler.obtainMessage(RTConstants.MESSAGE_READ, bytes, -1, fullMessage).sendToTarget();
                         }
@@ -395,7 +394,7 @@ public class BluetoothConnection implements Connection {
         public void write(byte[] bytes) {
             try {
                 outputStream.write(bytes);
-                Timber.d( "WRITE_OK");
+                Timber.d("WRITE_OK");
             } catch (IOException e) {
                 // TODO here we should reconnect to the device if the stream is interrupted
                 Log.e(TAG, "WRITE_FAIL " + e.getMessage());

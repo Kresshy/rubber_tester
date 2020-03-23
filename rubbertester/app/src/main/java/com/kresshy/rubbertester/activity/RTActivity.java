@@ -14,7 +14,7 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
@@ -53,7 +53,7 @@ import java.util.Set;
 import timber.log.Timber;
 
 
-public class RTActivity extends ActionBarActivity implements
+public class RTActivity extends AppCompatActivity implements
         ForceFragment.OnFragmentInteractionListener,
         NavigationDrawerFragment.NavigationDrawerCallbacks,
         BluetoothDeviceListFragment.OnFragmentInteractionListener,

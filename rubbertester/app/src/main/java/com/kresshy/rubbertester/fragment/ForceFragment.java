@@ -71,12 +71,14 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     private int releaseMeasurementCount = 0;
     private int numberOfSamples = 7000;
     private int maximumForce = 35000; // grams
+    private int minimumForce = 100;
     private boolean maximumForceReached = false;
     private boolean enableSounds = true;
     private boolean aboveMaximumForce = false;
+    private boolean belowMinimumForce = true;
     private boolean zeroValueHandlingMode = false;
     private boolean disableUIChangesForUnitTesting = false;
-    private ForceMeasurement zeroMeasurement;
+    private List<ForceMeasurement> zeroMeasurementList;
 
     private List<ForceMeasurement> pullForceMeasurementList;
     private List<ForceMeasurement> releaseForceMeasurementList;
@@ -97,6 +99,7 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
         // Required empty public constructor
     }
 
+    @SuppressLint("ValidFragment")
     public ForceFragment(List<ForceMeasurement> pullForceMeasurementList, List<ForceMeasurement> releaseForceMeasurementList) {
         coefficientValue = 1.6;
         leap = 10.825;
@@ -211,6 +214,16 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     // returns false if there weren't any zero value.
     private boolean handleIfValueIsNull(ForceMeasurement forceMeasurement) {
         if (zeroValueHandlingMode) {
+            Timber.d("Zero Handling Mode Activated.");
+            for (ForceData data : forceMeasurement.getMeasurements()) {
+                // Not just the previous but the current one is also a zero value...
+                if (data.getForce() == 0.0) {
+                    // adding to the list and staying in zero value handling mode.
+                    zeroMeasurementList.add(forceMeasurement);
+                    return zeroValueHandlingMode;
+                }
+            }
+
             // This means some of the previous measurement was zero. We are going to calculate an
             // average of the previous measurements.
             List<ForceData> previousMeasurementData;
@@ -226,7 +239,13 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
                             .get(pullForceMeasurementList.size() - 1).getMeasurements();
                 }
             }
-            List<ForceData> zeroMeasurementData = zeroMeasurement.getMeasurements();
+
+            List<ForceData> zeroMeasurementData = new ArrayList<>();
+
+            for (ForceMeasurement measurement : zeroMeasurementList) {
+                zeroMeasurementData.addAll(measurement.getMeasurements());
+            }
+
             List<ForceData> currentMeasurementData = forceMeasurement.getMeasurements();
 
             List<ForceData> allMeasurementData = new ArrayList<>();
@@ -243,27 +262,32 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
                 i++;
             }
 
-            double sumValue = 0.0;
 
-            sumValue += allMeasurementData.get(i - 1).getForce();
-            sumValue += allMeasurementData.get(i).getForce();
-            sumValue += allMeasurementData.get(i + 1).getForce();
-
-            double averageValue = sumValue / 3;
-
-            // The position where we have to insert the average value;
-            i -= previousMeasurementData.size();
+            List<Double> averagesList = new ArrayList<>();
+            for (int k = 0; k < zeroMeasurementData.size(); k++) {
+                double sumValue = 0.0;
+                if (k == 0) {
+                    // The last correct value in the list.
+                    sumValue += allMeasurementData.get(i - 1).getForce();
+                } else {
+                    // There are some averages in the list from this point.
+                    sumValue += averagesList.get(k - 1);
+                }
+                // The zero value(s) in the list.
+                sumValue += allMeasurementData.get(i + k).getForce();
+                // The next correct value in the list after the zero(s).
+                sumValue += allMeasurementData.get(i + zeroMeasurementData.size()).getForce();
+                averagesList.add(sumValue / (2 + zeroMeasurementData.size() - k));
+            }
 
             List<ForceData> correctedData = new ArrayList<>();
-
             List<ForceData> incorrectData = new ArrayList<>();
             incorrectData.addAll(zeroMeasurementData);
             incorrectData.addAll(currentMeasurementData);
-
             for (int j = 0; j < zeroMeasurementData.size() + currentMeasurementData.size(); j++) {
-                if (j == i) {
+                if (j < zeroMeasurementData.size()) {
                     ForceData data = incorrectData.get(j);
-                    data.setForce(averageValue);
+                    data.setForce(averagesList.get(j));
                     correctedData.add(data);
                 } else {
                     correctedData.add(incorrectData.get(j));
@@ -274,12 +298,17 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
             // We have corrected the Zero value
             zeroValueHandlingMode = false;
         } else {
+            Timber.d("Zero Handling Mode Deactivated.");
             // Looking for a zero value in the measurements.
             for (ForceData data : forceMeasurement.getMeasurements()) {
                 // We allow the first measurement to be zero, otherwise it's a wrong measurement.
                 if (data.getForce() == 0.0 && measurementCount > 0) {
+                    Timber.d("Found Zero Activating Handling Mode.");
+                    // Starting of the zero value(s)...
+                    // Cleaning out the existing list and adding the first zero value.
+                    zeroMeasurementList = new ArrayList<>();
+                    zeroMeasurementList.add(forceMeasurement);
                     zeroValueHandlingMode = true;
-                    zeroMeasurement = forceMeasurement;
                 }
             }
         }
@@ -288,7 +317,18 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
     }
 
     private void handleIncomingMeasurement(ForceMeasurement forceMeasurement) {
-        Timber.d("Handling Incoming measurement");
+        for (ForceData data : forceMeasurement.getMeasurements()) {
+            if (data.getForce() >= minimumForce) {
+                belowMinimumForce = false;
+            } else {
+                belowMinimumForce = true;
+            }
+        }
+
+        if (belowMinimumForce) {
+            Timber.d("Measurement below minimum force.");
+            return;
+        }
 
         // Check if we are still above the maximum allowed pulling force.
         for (ForceData data : forceMeasurement.getMeasurements()) {
@@ -302,9 +342,11 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
         }
 
         if (handleIfValueIsNull(forceMeasurement)) {
+            Timber.d("Zero measurement received");
             return;
         }
 
+        Timber.d("Handling Incoming measurement");
         // Store all valid (nonzero filtered) measurements for serialization and other calculations.
         if (!maximumForceReached) {
             pullForceMeasurementList.add(forceMeasurement);
@@ -528,6 +570,9 @@ public class ForceFragment extends Fragment implements ForceListener, View.OnCli
                 measurementCount = 0;
                 releaseMeasurementCount = 0;
                 maximumForceReached = false;
+                aboveMaximumForce = false;
+                belowMinimumForce = true;
+                zeroValueHandlingMode = false;
 
                 pullForceTextView.setText("0");
                 pullLengthTextView.setText("0");

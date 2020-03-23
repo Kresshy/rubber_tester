@@ -1,9 +1,5 @@
 package com.kresshy.rubbertester.serialization;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
@@ -19,6 +15,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.kresshy.rubbertester.R;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LoadDialog extends Activity {
     RadioGroup rGroup;

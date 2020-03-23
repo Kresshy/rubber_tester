@@ -1,5 +1,6 @@
 package com.kresshy.rubbertester.fragment;
 
+import com.google.gson.Gson;
 import com.kresshy.rubbertester.force.ForceData;
 import com.kresshy.rubbertester.force.ForceMeasurement;
 
@@ -411,6 +412,92 @@ public class ForceFragmentTest {
         Assert.assertEquals(5, pullForceMeasurements.get(0).getMeasurements().get(0).getForce(), 1);
         Assert.assertEquals(35001, pullForceMeasurements.get(1).getMeasurements().get(0).getForce(), 1);
         Assert.assertEquals(5, releaseForceMeasurements.get(0).getMeasurements().get(0).getForce(), 1);
+    }
+
+    @Test
+    public void testMeasurementsWhenMultipleZeroValuesComing() {
+        List<ForceMeasurement> pullForceMeasurements = new ArrayList<>();
+        List<ForceMeasurement> releaseForceMeasurements = new ArrayList<>();
+
+        ForceFragment SUT = new ForceFragment(pullForceMeasurements, releaseForceMeasurements);
+
+        List<ForceMeasurement> measurements = new ArrayList<>();
+
+        Gson gson = new Gson();
+
+        String measurement1 = "{\"version\":1,\"unit\":\"cm\",\"leap\":4,\"measurements\":[{\"unit\":\"gram\",\"force\":5,\"count\":1545}]}";
+        ForceMeasurement forceMeasurement1 = gson.fromJson(measurement1, ForceMeasurement.class);
+        String measurement2 = "{\"version\":1,\"unit\":\"cm\",\"leap\":4,\"measurements\":[{\"unit\":\"gram\",\"force\":0,\"count\":1546}]}";
+        ForceMeasurement forceMeasurement2 = gson.fromJson(measurement2, ForceMeasurement.class);
+        String measurement3 = "{\"version\":1,\"unit\":\"cm\",\"leap\":4,\"measurements\":[{\"unit\":\"gram\",\"force\":0,\"count\":1547}]}";
+        ForceMeasurement forceMeasurement3 = gson.fromJson(measurement3, ForceMeasurement.class);
+        String measurement4 = "{\"version\":1,\"unit\":\"cm\",\"leap\":4,\"measurements\":[{\"unit\":\"gram\",\"force\":35001,\"count\":1548}]}";
+        ForceMeasurement forceMeasurement4 = gson.fromJson(measurement4, ForceMeasurement.class);
+        String measurement5 = "{\"version\":1,\"unit\":\"cm\",\"leap\":4,\"measurements\":[{\"unit\":\"gram\",\"force\":40,\"count\":1549}]}";
+        ForceMeasurement forceMeasurement5 = gson.fromJson(measurement5, ForceMeasurement.class);
+        String measurement6 = "{\"version\":1,\"unit\":\"cm\",\"leap\":4,\"measurements\":[{\"unit\":\"gram\",\"force\":2,\"count\":1550}]}";
+        ForceMeasurement forceMeasurement6 = gson.fromJson(measurement6, ForceMeasurement.class);
+
+        measurements.add(forceMeasurement1);
+        measurements.add(forceMeasurement2);
+        measurements.add(forceMeasurement3);
+        measurements.add(forceMeasurement4);
+        measurements.add(forceMeasurement5);
+        measurements.add(forceMeasurement6);
+
+        SUT.enableMeasurementForTesting();
+        SUT.disableUIChangesForTesting();
+        SUT.disableSounds();
+
+        for (ForceMeasurement measurement : measurements) {
+            SUT.measurementReceived(measurement);
+        }
+
+        Assert.assertEquals(2, pullForceMeasurements.size());
+        Assert.assertEquals(2, releaseForceMeasurements.size());
+    }
+
+    @Test
+    public void testMeasurementsBelowMinimumForce() {
+        List<ForceMeasurement> pullForceMeasurements = new ArrayList<>();
+        List<ForceMeasurement> releaseForceMeasurements = new ArrayList<>();
+
+        ForceFragment SUT = new ForceFragment(pullForceMeasurements, releaseForceMeasurements);
+
+        List<ForceMeasurement> measurements = new ArrayList<>();
+
+        Gson gson = new Gson();
+
+        String measurement1 = "{\"version\":1,\"unit\":\"cm\",\"leap\":4,\"measurements\":[{\"unit\":\"gram\",\"force\":5,\"count\":1545}]}";
+        ForceMeasurement forceMeasurement1 = gson.fromJson(measurement1, ForceMeasurement.class);
+        String measurement2 = "{\"version\":1,\"unit\":\"cm\",\"leap\":4,\"measurements\":[{\"unit\":\"gram\",\"force\":99,\"count\":1546}]}";
+        ForceMeasurement forceMeasurement2 = gson.fromJson(measurement2, ForceMeasurement.class);
+        String measurement3 = "{\"version\":1,\"unit\":\"cm\",\"leap\":4,\"measurements\":[{\"unit\":\"gram\",\"force\":120,\"count\":1547}]}";
+        ForceMeasurement forceMeasurement3 = gson.fromJson(measurement3, ForceMeasurement.class);
+        String measurement4 = "{\"version\":1,\"unit\":\"cm\",\"leap\":4,\"measurements\":[{\"unit\":\"gram\",\"force\":35001,\"count\":1548}]}";
+        ForceMeasurement forceMeasurement4 = gson.fromJson(measurement4, ForceMeasurement.class);
+        String measurement5 = "{\"version\":1,\"unit\":\"cm\",\"leap\":4,\"measurements\":[{\"unit\":\"gram\",\"force\":10001,\"count\":1549}]}";
+        ForceMeasurement forceMeasurement5 = gson.fromJson(measurement5, ForceMeasurement.class);
+        String measurement6 = "{\"version\":1,\"unit\":\"cm\",\"leap\":4,\"measurements\":[{\"unit\":\"gram\",\"force\":10,\"count\":1550}]}";
+        ForceMeasurement forceMeasurement6 = gson.fromJson(measurement6, ForceMeasurement.class);
+
+        measurements.add(forceMeasurement1);
+        measurements.add(forceMeasurement2);
+        measurements.add(forceMeasurement3);
+        measurements.add(forceMeasurement4);
+        measurements.add(forceMeasurement5);
+        measurements.add(forceMeasurement6);
+
+        SUT.enableMeasurementForTesting();
+        SUT.disableUIChangesForTesting();
+        SUT.disableSounds();
+
+        for (ForceMeasurement measurement : measurements) {
+            SUT.measurementReceived(measurement);
+        }
+
+        Assert.assertEquals(2, pullForceMeasurements.size());
+        Assert.assertEquals(1, releaseForceMeasurements.size());
     }
 
 }

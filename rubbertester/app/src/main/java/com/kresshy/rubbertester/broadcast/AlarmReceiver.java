@@ -12,7 +12,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        mp= MediaPlayer.create(context, R.raw.alert);
+        mp = MediaPlayer.create(context, R.raw.alert);
         mp.start();
     }
 }

@@ -15,10 +15,10 @@ public class ForceCalculator {
     public double calculateMaximumWorkLoad() {
         double maximumWorkLoad = 0;
 
-        for(ForceMeasurement measurement: forceMeasurementList) {
+        for (ForceMeasurement measurement : forceMeasurementList) {
             final int leap = measurement.getLeap();
 
-            for (ForceData data: measurement.getMeasurements()) {
+            for (ForceData data : measurement.getMeasurements()) {
                 maximumWorkLoad += (data.getForce() * this.leap);
             }
         }

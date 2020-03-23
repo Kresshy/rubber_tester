@@ -14,7 +14,6 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.InputType;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -132,7 +131,7 @@ public class WifiFragment extends Fragment implements AdapterView.OnItemClickLis
         connectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Timber.d( "Clicked on connect Button");
+                Timber.d("Clicked on connect Button");
                 mListener.onDeviceSelectedToConnect(new WifiDevice(SERVER_IP, SERVERPORT));
             }
         });

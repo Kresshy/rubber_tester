@@ -10,7 +10,7 @@ import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
@@ -23,6 +23,8 @@ import java.util.Set;
 
 import timber.log.Timber;
 
+//import android.support.v7.app.ActionBarActivity;
+
 public class ConnectionManager {
 
     private static ConnectionManager instance = null;
@@ -32,11 +34,11 @@ public class ConnectionManager {
     // wifi or bluetooth connection interface
     public Connection connection;
 
-    private ActionBarActivity activity;
+    private AppCompatActivity activity;
     private ArrayAdapter adapter;
     private Handler handler;
 
-    protected ConnectionManager(ActionBarActivity activity, ArrayAdapter adapter, Handler handler) {
+    protected ConnectionManager(AppCompatActivity activity, ArrayAdapter adapter, Handler handler) {
         this.activity = activity;
         this.adapter = adapter;
         this.connection = ConnectionFactory.getConnection(handler, activity);
@@ -45,7 +47,7 @@ public class ConnectionManager {
         this.wifiManager = (WifiManager) activity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
-    public static ConnectionManager getInstance(ActionBarActivity activity, ArrayAdapter adapter, Handler handler) {
+    public static ConnectionManager getInstance(AppCompatActivity activity, ArrayAdapter adapter, Handler handler) {
         if (instance == null) {
             return new ConnectionManager(activity, adapter, handler);
         } else {
@@ -58,7 +60,7 @@ public class ConnectionManager {
 
         if (connectionType.equals("bluetooth")) {
             if (bluetoothAdapter == null) {
-                Timber.d( "Bluetooth is not supported, shutting down application");
+                Timber.d("Bluetooth is not supported, shutting down application");
                 Toast.makeText(activity, "Bluetooth is not supported", Toast.LENGTH_LONG).show();
                 activity.finish();
             } else {
@@ -95,7 +97,7 @@ public class ConnectionManager {
 
     private void enableBluetooth() {
         if (!bluetoothAdapter.isEnabled()) {
-            Timber.d( "Enabling bluetooth adapter");
+            Timber.d("Enabling bluetooth adapter");
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             activity.startActivityForResult(enableIntent, RTConstants.REQUEST_ENABLE_BT);
         }
@@ -103,7 +105,7 @@ public class ConnectionManager {
 
     private void disableBluetooth() {
         if (bluetoothAdapter.isEnabled()) {
-            Timber.d( "Disabling bluetooth adapter");
+            Timber.d("Disabling bluetooth adapter");
             bluetoothAdapter.disable();
         }
     }

@@ -1,80 +1,120 @@
 #include <ArduinoJson.h>
 #include <HX711.h>
 #include <SoftwareSerial.h>
+#include <Filter.h>
 
-const byte dataPin = 5; // HX711 sensor pin
-const byte clockPin = 4; // HX711 sensor pin
-const byte interruptPin = 3; // Opto sensor pin
+// Sets the program to run in test mode if true.
+bool test_mode = false;
+// 35000 gram maximum (35kg) weight.
+float max_weight = 35000; 
+// 100 gram minimum (0.01kg) weight.
+float min_weight = 100; 
 
-// Load Cell
-float calibration_factor = 65; // this calibration factor is adjusted according to my load cell
+// Input & Output pins.
+const byte data_pin = 5; // HX711 sensor pin
+const byte clock_pin = 4; // HX711 sensor pin
+const byte interrupt_pin = 3; // Opto sensor pin
+const byte signal_max_weight_pin = 11; // Signal pin (HIGH above max_weight, otherwise LOW)
+const byte signal_min_weight_pin = 12; // Signal pin (HIGH below min_weight, otherwise LOW)
+
+// HX711 scale, load cell & filtering vars.
+float calibration_factor = 65; // this calibration factor is adjusted according to the load cell
 float units;
-
-// Wheel
-volatile int pulsecount;
-byte unit = 2;
-double windspeed;
-int sensorVal;
-
+float raw_units;
+/* Moving average for load cell sensor data filtering*/
+Moving_average ma(5, 0);
 /* HX7111 load cell init with pins */
-HX711 scale(dataPin, clockPin);
+HX711 scale(data_pin, clock_pin);
 
-/* Bluetooth Serial init */
-SoftwareSerial mySerial(6, 7); // RX, TX
+// Wheel counter.
+volatile int pulsecount;
 
-/* Timeout for serial init */
+// State for signals on pins
+bool above_max_weight = false;
+bool below_min_weight = false;
+
+// Bluetooth Serial init.
+SoftwareSerial my_serial(6, 7); // RX, TX
+// Timeout for serial init.
 const int timeout = 800;
 
-double windRange[2] = { 0, 15};
-
-void setup() {
-  Serial.begin(9600);
-  Serial.setTimeout(timeout);
-  mySerial.begin(9600);
-  mySerial.setTimeout(timeout);
-
-  scale.set_scale();
-  scale.tare();  //Reset the scale to 0
-  scale.set_scale(calibration_factor); //Adjust to this calibration factor
-
-  Serial.print("Calibration_factor: ");
-  Serial.print(calibration_factor);
-  Serial.println();
-
-  pinMode(interruptPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(interruptPin), handleWheelTurn, FALLING);
-  pulsecount = 0;
-}
-
-void loop() {
-  // nothing to do here.
-}
-
-void handleWheelTurn() {
-  countWheelTurn();
-  readRubberPull();
-  sendJSONBluetooth();
-  clearReadRubberPull();
-}
-
-void countWheelTurn() {
+// Counts every wheel turn.
+void CountWheelTurn() {
   pulsecount++;
 }
 
-void readRubberPull() {
-  units = scale.get_units(), 10;
-  if (units < 0)
+// Reads the scale value into the raw_units.
+void ReadRubberPull() {
+  raw_units = scale.get_units();
+  if (raw_units < 0)
   {
-    units = 0.00;
+    raw_units = 0.00;
   }
 }
 
-void clearReadRubberPull() {
-  units = 0;
+// Filters the raw units and writes the filtered value into units.
+void FilterPullForce() {
+  units = ma.filter(raw_units);
 }
 
-void sendJSONBluetooth() {
-  int nodeCount = 1;
+// Sends a signal to pin 11 if the measured weight is above max_weight.
+void SignalOnMaxWeightPin() {
+  if (test_mode) {
+    Serial.print("Units: ");
+    Serial.print(units);
+    Serial.println();
+  }
+  if (units >= max_weight && !above_max_weight) {
+    noInterrupts();
+    digitalWrite(signal_max_weight_pin, HIGH);
+    above_max_weight = true;
+    interrupts();
+    if (test_mode) {
+      Serial.print("\nHIGH\n");
+    }
+  }
+
+  if (units < max_weight && above_max_weight) {
+    noInterrupts();
+    digitalWrite(signal_max_weight_pin, LOW);
+    above_max_weight = false;
+    interrupts();
+    if (test_mode) {
+      Serial.print("\nLOW\n");
+    }
+  }
+}
+
+// Sends a signal to pin 12 if the measured weight is below min_weight.
+void SignalOnMinWeightPin() {
+  if (test_mode) {
+    Serial.print("Units: ");
+    Serial.print(units);
+    Serial.println();
+  }
+  if (units < min_weight && !below_min_weight) {
+//    noInterrupts();
+    digitalWrite(signal_min_weight_pin, HIGH);
+    below_min_weight = true;
+//    interrupts();
+    if (test_mode) {
+      Serial.print("\nHIGH\n");
+    }
+  }
+
+  if (units >= min_weight && below_min_weight) {
+//    noInterrupts();
+    digitalWrite(signal_min_weight_pin, LOW);
+    below_min_weight = false;
+//    interrupts();
+    if (test_mode) {
+      Serial.print("\nLOW\n");
+    }
+  }
+}
+
+// Sends the measurement on bluetooth.
+void SendJSONBluetooth() {
   DynamicJsonBuffer jsonBuffer;
   JsonObject& measurement = jsonBuffer.createObject();
   measurement["unit"] = "gram";
@@ -91,7 +131,58 @@ void sendJSONBluetooth() {
 
   jsonBuffer.clear();
 
-  mySerial.print("start_");
-  root.printTo(mySerial);
-  mySerial.print("_end\n");
+  my_serial.print("start_");
+  root.printTo(my_serial);
+  my_serial.print("_end\n");
+
+  if (test_mode) {
+    root.printTo(Serial);
+    Serial.print("\n\n");
+  }
+}
+
+void HandleWheelTurn() {
+  CountWheelTurn();
+  SendJSONBluetooth();
+}
+
+void setup() {
+  // The serial setup for PC & Arduino communication.
+  Serial.begin(9600);
+  Serial.setTimeout(timeout);
+  // The bluetooth serial communication at 9600 baud rate. This has to be changed to make it faster.
+  my_serial.begin(115200);
+  my_serial.setTimeout(timeout);
+
+  // Initialize the scale
+  scale.set_scale();
+  scale.tare();  //Reset the scale to 0
+  scale.set_scale(calibration_factor); //Adjust to this calibration factor
+
+  // The current calibration factor.
+  Serial.print("Calibration_factor: ");
+  Serial.print(calibration_factor);
+  Serial.println();
+
+  // Pin configuration & defaults.
+  pinMode(signal_max_weight_pin, OUTPUT);
+  digitalWrite(signal_max_weight_pin, LOW);
+  pinMode(signal_min_weight_pin, OUTPUT);
+  digitalWrite(signal_min_weight_pin, LOW);
+  pinMode(interrupt_pin, INPUT_PULLUP);
+  // Setup interrupt for wheel turns.
+  attachInterrupt(digitalPinToInterrupt(interrupt_pin), HandleWheelTurn, FALLING);
+  pulsecount = 0;
+}
+
+void loop() {
+  // Continuously read, filter the measurements and signal to pin.
+  delay(50);
+  ReadRubberPull();
+  FilterPullForce();
+  SignalOnMaxWeightPin();
+  SignalOnMinWeightPin();
+  if (test_mode) {
+    HandleWheelTurn();
+  }
 }

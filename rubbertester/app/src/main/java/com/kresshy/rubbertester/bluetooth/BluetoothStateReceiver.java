@@ -1,6 +1,7 @@
 package com.kresshy.rubbertester.bluetooth;
 
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -9,7 +10,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.support.v7.app.ActionBarActivity;
 import android.widget.ArrayAdapter;
 
 import com.kresshy.rubbertester.R;
@@ -28,14 +28,14 @@ public class BluetoothStateReceiver extends BroadcastReceiver {
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private ArrayAdapter bluetoothDevices;
     private Set<BluetoothDevice> pairedDevices;
-    private ActionBarActivity activity;
+    private Activity activity;
     private Connection connection;
     private SharedPreferences sharedPreferences;
 
     protected BluetoothStateReceiver(
             Connection connection,
             ArrayAdapter bluetoothDevices,
-            ActionBarActivity activity,
+            Activity activity,
             SharedPreferences sharedPreferences
     ) {
         this.bluetoothDevices = bluetoothDevices;
@@ -47,7 +47,7 @@ public class BluetoothStateReceiver extends BroadcastReceiver {
     public static BluetoothStateReceiver getInstance(
             Connection connection,
             ArrayAdapter bluetoothDevices,
-            ActionBarActivity activity,
+            Activity activity,
             SharedPreferences sharedPreferences
     ) {
         if (instance == null) {
